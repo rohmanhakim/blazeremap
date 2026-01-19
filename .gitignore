@@ -1,0 +1,4 @@
+*.swp
+cmd/blazeremap/main
+cmd/blazeremap/netps
+cmd/blazeremap/__debug_bin*
