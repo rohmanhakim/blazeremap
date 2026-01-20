@@ -3,6 +3,7 @@ module blazeremap.com/blazeremap
 go 1.24.4
 
 require (
+	github.com/gvalkov/golang-evdev v0.0.0-20220815104727-7e27d6ce89b6
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 )

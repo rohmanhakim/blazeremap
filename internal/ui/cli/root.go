@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"blazeremap.com/blazeremap/internal/device"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +11,7 @@ type Options struct {
 	Version bool
 }
 
-func NewRootCmd(opts *Options) *cobra.Command {
+func NewRootCmd(opts *Options, deviceManager device.DeviceManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "blazeremap",
 		Short: "BlazeRemap",
@@ -23,5 +24,8 @@ func NewRootCmd(opts *Options) *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&opts.Version, "version", "v", false, "show app version")
+	cmd.AddCommand(
+		NewDetectCmd(opts, deviceManager),
+	)
 	return cmd
 }
