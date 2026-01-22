@@ -1,0 +1,50 @@
+[package]
+name = "blazeremap"
+version = "0.1.0"
+edition = "2024"
+authors = ["Muhammad Arif Rohman Hakim <contact@arifrohman.com>"]
+description = "Linux keyboard-to-gamepad remapping software"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rohmanhakim/blazeremap"
+keywords = ["gamepad", "controller", "linux", "evdev", "input"]
+categories = ["games", "hardware-support"]
+readme = "README.md"
+
+# Library target
+[lib]
+name = "blazeremap"
+path = "src/lib.rs"
+
+# Binary target
+[[bin]]
+name = "blazeremap"
+path = "src/main.rs"
+
+[dependencies]
+# CLI framework
+clap = { version = "4.5", features = ["derive", "cargo"] }
+
+# Error handling
+anyhow = "1.0"          # Simple error handling
+thiserror = "1.0"       # Custom error types
+
+# Evdev
+evdev = "0.12"          # Main evdev library
+
+# Logging
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+
+[dev-dependencies]
+# Testing utilities
+assert_matches = "1.5"
+assert_cmd = "2.1.2"
+predicates = "3.1.3"
+mockall = "0.13"        # For mocking interfaces in tests
+
+[profile.release]
+# Optimize for small binary size and performance
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true            # Remove debug symbols

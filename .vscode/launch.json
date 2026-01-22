@@ -1,0 +1,67 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug unit tests in library 'blazeremap'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["test"],
+      },
+    },
+    {
+      "name": "Debug executable 'blazeremap'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["run", "--bin=blazeremap"],
+      },
+      "args": [],
+    },
+    {
+      "name": "Debug executable 'blazeremap detect'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["run", "--bin=blazeremap"],
+      },
+      "args": ["detect"],
+    },
+    {
+      "name": "Debug executable 'blazeremap detect --verbose'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["run", "--bin=blazeremap"],
+      },
+      "args": ["detect", "--verbose"],
+    },
+    {
+      "name": "Debug unit tests in executable 'blazeremap'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["test", "--bin=blazeremap"],
+      },
+    },
+    {
+      "name": "Debug integration test 'hardware_test'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["test", "--test=hardware_test"],
+      },
+    },
+    {
+      "name": "Debug integration test 'types_test'",
+      "type": "lldb",
+      "request": "launch",
+      "cargo": {
+        "args": ["test", "--test=types_test"],
+      },
+    },
+  ],
+}

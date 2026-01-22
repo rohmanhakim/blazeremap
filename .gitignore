@@ -1,5 +1,41 @@
+<<<<<<< HEAD
 *.swp
 cmd/blazeremap/blazeremap
 cmd/blazeremap/main
 cmd/blazeremap/__debug_bin*
 debug/*
+=======
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+
+# IDE
+## JetBrains
+.idea/
+*.iml
+
+## Zed (keep .zed/)
+.zed/*
+### but allow configs
+!.zed/debug.json
+!.zed/tasks.json
+
+## VS Code
+.vscode/settings.json
+
+# Swap
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+*.profraw
+*.profdata
+
+# Build artifacts
+*.deb
+*.rpm
+*.tar.gz
+>>>>>>> 3037607 (feat: complete Rust migration of Task #2 (controller detection))
