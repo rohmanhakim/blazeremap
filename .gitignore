@@ -31,3 +31,5 @@
 *.deb
 *.rpm
 *.tar.gz
+
+docs/
