@@ -14,6 +14,9 @@
 pub mod app;
 pub mod cli;
 pub mod device;
+pub mod event;
+pub mod mapping;
+pub mod output;
 pub mod platform;
 
 // Re-export commonly used types
