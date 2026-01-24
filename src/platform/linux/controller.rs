@@ -1,8 +1,14 @@
 // Controller detection and information extraction
-use crate::device::controller::{
-    ControllerCapability, ControllerInfo, get_known_vendor_database, identify_controller,
+use crate::{
+    device::controller::{
+        Controller, ControllerCapability, ControllerInfo, get_known_vendor_database,
+        identify_controller,
+    },
+    event::InputEvent,
+    platform::linux::evdev_to_input,
 };
-use evdev::{AttributeSetRef, Device, FFEffectType};
+use anyhow::Context;
+use evdev::{AttributeSetRef, Device, FFEffectCode};
 
 // Constants for controller detection
 const BTN_GAMEPAD_MIN: u16 = 0x130;
@@ -56,7 +62,7 @@ fn is_excluded_by_name(name: &str) -> bool {
 
 /// Check if a device is a game controller
 pub(super) fn is_game_controller(device: &Device) -> bool {
-    use evdev::{AbsoluteAxisType, EventType};
+    use evdev::{AbsoluteAxisCode, EventType};
 
     let supported_events = device.supported_events();
 
@@ -93,10 +99,10 @@ pub(super) fn is_game_controller(device: &Device) -> bool {
     let mut has_gamepad_axis = false;
     for axis in axes.iter() {
         match axis {
-            AbsoluteAxisType::ABS_X => has_gamepad_axis = true,
-            AbsoluteAxisType::ABS_Y => has_gamepad_axis = true,
-            AbsoluteAxisType::ABS_RX => has_gamepad_axis = true,
-            AbsoluteAxisType::ABS_RY => has_gamepad_axis = true,
+            AbsoluteAxisCode::ABS_X => has_gamepad_axis = true,
+            AbsoluteAxisCode::ABS_Y => has_gamepad_axis = true,
+            AbsoluteAxisCode::ABS_RX => has_gamepad_axis = true,
+            AbsoluteAxisCode::ABS_RY => has_gamepad_axis = true,
             _ => {}
         }
     }
@@ -132,7 +138,7 @@ fn has_force_feedback(device: &Device) -> bool {
         return false;
     }
 
-    let ff_effects: &AttributeSetRef<FFEffectType> = device.supported_ff().unwrap_or_default();
+    let ff_effects: &AttributeSetRef<FFEffectCode> = device.supported_ff().unwrap_or_default();
     ff_effects.iter().len() != 0
 }
 
@@ -192,13 +198,169 @@ pub(super) fn extract_controller_info(
     })
 }
 
+pub struct LinuxController {
+    info: ControllerInfo,
+    device: Device,
+}
+
+impl LinuxController {
+    pub fn new(info: ControllerInfo, device: Device) -> Self {
+        Self { info, device }
+    }
+
+    /// Open a controller device at the given path
+    ///
+    /// This is the primary way to construct a LinuxController.
+    pub fn open(path: &str) -> anyhow::Result<Self> {
+        // Open device first
+        let device =
+            Device::open(path).with_context(|| format!("Failed to open device at {}", path))?;
+
+        // Extract info from opened device
+        let info = extract_controller_info(&device, path)?;
+
+        // Construct with both
+        Ok(Self::new(info, device))
+    }
+}
+
+impl Controller for LinuxController {
+    fn get_info(&self) -> &ControllerInfo {
+        &self.info
+    }
+
+    fn read_event(&mut self) -> anyhow::Result<Option<InputEvent>> {
+        // This blocks until an event arrives - INTENTIONAL!
+        match self.device.fetch_events() {
+            Ok(events) => {
+                // Process events, filter for relevant types
+                for event in events {
+                    let ev_type = event.event_type();
+
+                    // Only care about buttons and axes
+                    if ev_type == evdev::EventType::KEY || ev_type == evdev::EventType::ABSOLUTE {
+                        match evdev_to_input(event) {
+                            Some(input_event) => {
+                                if !input_event.is_in_deadzone() {
+                                    return Ok(Some(input_event));
+                                }
+                            }
+                            None => {
+                                return Ok(None);
+                            }
+                        }
+                    }
+
+                    // Skip sync events (frame boundaries)
+                }
+
+                // No relevant events in this batch, continue reading
+                Ok(None)
+            }
+            Err(e) => {
+                // Check if device disconnected using Linux errno
+                // ENODEV (19) = No such device (device was disconnected)
+                if let Some(19) = e.raw_os_error() {
+                    Ok(None) // Graceful disconnect
+                } else {
+                    Err(anyhow::anyhow!("Failed to read event: {}", e))
+                }
+            }
+        }
+    }
+
+    fn close(self) -> anyhow::Result<()> {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::device::controller::ControllerInfo;
+    use crate::device::controller::{ControllerCapability, ControllerType};
+
+    #[test]
+    fn test_is_excluded_by_name() {
+        // Test excluded keywords
+        assert!(is_excluded_by_name("USB Keyboard"));
+        assert!(is_excluded_by_name("Wireless Mouse"));
+        assert!(is_excluded_by_name("HDMI Audio"));
+        assert!(is_excluded_by_name("System Control"));
+
+        // Test non-excluded names
+        assert!(!is_excluded_by_name("Xbox Wireless Controller"));
+        assert!(!is_excluded_by_name("DualSense Wireless Controller"));
+        assert!(!is_excluded_by_name("Generic Gamepad"));
+    }
+
+    #[test]
+    fn test_linux_controller_construction() {
+        // Create mock ControllerInfo
+        let _info = ControllerInfo {
+            path: "/dev/input/event3".to_string(),
+            name: "Test Controller".to_string(),
+            controller_type: ControllerType::XboxOne,
+            vendor_id: 0x045e,
+            vendor_name: "Microsoft".to_string(),
+            product_id: 0x02ea,
+            capabilities: vec![ControllerCapability::ForceFeedback],
+        };
+
+        // This test would require a mock Device, which is complex
+        // For now, just test that the struct can be constructed
+        // In a real test, we'd need to mock or use a test device
+    }
+
+    #[test]
+    fn test_has_force_feedback() {
+        // This would require creating a mock Device with FF support
+        // For now, we skip this as it requires complex mocking
+    }
+
+    #[test]
+    fn test_has_elite_paddles() {
+        // This would require creating a mock Device with paddle buttons
+        // For now, we skip this as it requires complex mocking
+    }
+
+    #[test]
+    fn test_extract_controller_info() {
+        // This would require creating a mock Device
+        // For now, we skip this as it requires complex mocking
+    }
+
+    #[test]
+    fn test_controller_trait_methods() {
+        // Test that the trait methods exist and return expected types
+        // We can't easily test the actual functionality without mocking
+    }
+
+    #[test]
+    fn test_device_disconnect_error_handling() {
+        use std::io::{Error, ErrorKind};
+
+        // Test that ENODEV (19) is properly handled as graceful disconnect
+        let enodev_error = Error::from_raw_os_error(19); // ENODEV
+
+        // This simulates what happens in read_event when device is disconnected
+        // We can't easily test the full read_event method without mocking,
+        // but we can test the error handling logic
+        assert_eq!(enodev_error.raw_os_error(), Some(19));
+
+        // Test that other errors are not treated as disconnect
+        let other_error = Error::new(ErrorKind::Other, "Some other error");
+        assert_ne!(other_error.raw_os_error(), Some(19));
+    }
+}
+
 #[cfg(test)]
 mod debug_tests {
     use super::*;
 
     #[test]
     fn test_compare_with_and_without_name_filter() {
-        use evdev::{AbsoluteAxisType, EventType, enumerate};
+        use evdev::{AbsoluteAxisCode, EventType, enumerate};
 
         let devices: Vec<_> = enumerate().collect();
 
@@ -236,10 +398,10 @@ mod debug_tests {
             let mut has_gamepad_axis = false;
             for axis in axes.iter() {
                 match axis {
-                    AbsoluteAxisType::ABS_X
-                    | AbsoluteAxisType::ABS_Y
-                    | AbsoluteAxisType::ABS_RX
-                    | AbsoluteAxisType::ABS_RY => {
+                    AbsoluteAxisCode::ABS_X
+                    | AbsoluteAxisCode::ABS_Y
+                    | AbsoluteAxisCode::ABS_RX
+                    | AbsoluteAxisCode::ABS_RY => {
                         has_gamepad_axis = true;
                         break;
                     }

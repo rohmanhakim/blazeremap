@@ -1,5 +1,6 @@
 // CLI module - command definitions and handling
 mod detect;
+mod read;
 
 use clap::Command;
 
@@ -12,6 +13,7 @@ pub fn build_cli() -> Command {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(detect::command())
+        .subcommand(read::command())
 }
 
 /// Execute the CLI and handle the result
@@ -20,6 +22,7 @@ pub fn execute() -> anyhow::Result<()> {
 
     match matches.subcommand() {
         Some(("detect", sub_matches)) => detect::handle(sub_matches),
+        Some(("read", sub_matches)) => read::handle(sub_matches),
         _ => unreachable!("Subcommand required"),
     }
 }

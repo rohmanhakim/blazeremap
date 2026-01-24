@@ -1,10 +1,13 @@
 // Binary entry point for BlazeRemap
 use blazeremap::app::App;
+use blazeremap::event::init_time_anchor;
 use std::process;
 
 fn main() {
     // Initialize logging
     tracing_subscriber::fmt::init();
+
+    init_time_anchor();
 
     // Run the app and exit with appropriate code
     process::exit(run());

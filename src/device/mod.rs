@@ -1,6 +1,4 @@
 // Device module
-// Mirrors: internal/device/ package
-
 pub mod controller;
 pub mod manager;
 

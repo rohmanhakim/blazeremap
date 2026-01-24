@@ -1,5 +1,4 @@
-// Controller information and trait definition
-
+// Controller information
 use super::types::{ControllerCapability, ControllerType};
 
 /// Information about a detected controller
@@ -12,13 +11,4 @@ pub struct ControllerInfo {
     pub vendor_name: String,
     pub product_id: u16,
     pub capabilities: Vec<ControllerCapability>,
-}
-
-/// Controller trait - represents a physical game controller
-pub trait Controller {
-    /// Get detailed info about the controller
-    fn get_info(&self) -> &ControllerInfo;
-
-    /// Close releases the device
-    fn close(self) -> anyhow::Result<()>;
 }
