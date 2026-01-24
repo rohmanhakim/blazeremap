@@ -27,4 +27,16 @@
     "request": "launch",
     "sourceLanguages": ["rust"],
   },
+  {
+    "label": "Debug read /dev/input/event25",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build"],
+    },
+    "program": "target/debug/blazeremap",
+    "args": ["read", "/dev/input/event25"],
+    "request": "launch",
+    "sourceLanguages": ["rust"],
+  },
 ]
