@@ -33,8 +33,7 @@ evdev = "0.13.2"          # Main evdev library
 
 # Logging
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-
+tracing = "0.1.44"
 
 # Threading utilities
 crossbeam = "0.8.4"     # For channels
