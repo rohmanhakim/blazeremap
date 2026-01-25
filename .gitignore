@@ -33,3 +33,4 @@
 *.tar.gz
 
 docs/
+.rules
