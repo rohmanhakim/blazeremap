@@ -3,12 +3,8 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::{
-    event::{ButtonCode, InputEvent},
+    event::{ButtonCode, InputEvent, KeyboardCode, KeyboardEventType, OutputEvent},
     mapping::{MappingRule, types::TargetType},
-    output::{
-        event::OutputEvent,
-        types::{KeyboardCode, KeyboardEventType},
-    },
 };
 
 pub struct MappingEngine {

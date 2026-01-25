@@ -1,8 +1,21 @@
-use std::fmt;
+use std::fmt::{Display, Formatter, Result};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OutputCode {
-    Keyboard { code: KeyboardCode },
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum OutputEvent {
+    Keyboard {
+        code: KeyboardCode,
+        event_type: KeyboardEventType, // press, release, hold
+    },
+}
+
+impl Display for OutputEvent {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            Self::Keyboard { code, event_type } => {
+                write!(f, "Keyboard: {:?} ({:?})", code, event_type)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -240,8 +253,8 @@ pub enum KeyboardCode {
     Unknown, // Placeholder for any unmapped keys
 }
 
-impl fmt::Display for KeyboardCode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for KeyboardCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             Self::Reserved => write!(f, "Reserved"),
             Self::Escape => write!(f, "Escape"),

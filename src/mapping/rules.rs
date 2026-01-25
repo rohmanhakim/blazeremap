@@ -1,4 +1,7 @@
-use crate::{event::ButtonCode, mapping::types::TargetType, output::types::KeyboardCode};
+use crate::{
+    event::{ButtonCode, KeyboardCode},
+    mapping::types::TargetType,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MappingRule {
