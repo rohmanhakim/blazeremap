@@ -1,19 +1,19 @@
-// Device management types and traits
+// Input device management types and traits
 
-use super::controller::ControllerInfo;
+use super::gamepad::GamepadInfo;
 use thiserror::Error;
 
-/// DeviceManager trait - handles device discovery and creation
-pub trait DeviceManager {
-    /// List all connected controllers
-    fn list_controllers(&self) -> anyhow::Result<DetectionResult>;
+/// InputManager trait - handles input device discovery and creation
+pub trait InputManager {
+    /// List all connected gamepads
+    fn list_gamepads(&self) -> anyhow::Result<InputDetectionResult>;
 }
 
-/// Results of controller detection
+/// Results of gamepad detection
 #[derive(Debug, Default)]
-pub struct DetectionResult {
-    pub controller_info: Vec<ControllerInfo>,
-    pub errors: Vec<DeviceError>,
+pub struct InputDetectionResult {
+    pub gamepad_info: Vec<GamepadInfo>,
+    pub errors: Vec<InputDeviceError>,
 }
 
 /// Error types for device operations
@@ -27,20 +27,20 @@ pub enum ErrorType {
 
 /// Device-related error
 #[derive(Debug, Error)]
-pub struct DeviceError {
+pub struct InputDeviceError {
     pub path: String,
     pub error_type: ErrorType,
     #[source]
     pub source: anyhow::Error,
 }
 
-impl std::fmt::Display for DeviceError {
+impl std::fmt::Display for InputDeviceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} error at {}: {}", self.error_type, self.path, self.source)
     }
 }
 
-impl DeviceError {
+impl InputDeviceError {
     pub fn new(path: String, error_type: ErrorType, source: anyhow::Error) -> Self {
         Self { path, error_type, source }
     }

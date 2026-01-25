@@ -1,14 +1,14 @@
 /*
- Event type definitions for controller input processing.
+ Event type definitions for gamepad input processing.
 
   This module defines the core event types used throughout BlazeRemap for
-  representing controller inputs and their mapped outputs.
+  representing gamepad inputs and their mapped outputs.
 
   # Event Flow
-  Physical Controller → InputEvent → Mapping Engine → OutputEvent → Virtual Device
+  Physical Gamepad → InputEvent → Mapping Engine → OutputEvent → Virtual Device
 
   # Types
-  - [`InputEvent`]: Represents a raw input from a physical controller (button press,
+  - [`InputEvent`]: Represents a raw input from a physical gamepad (button press,
       axis movement, etc.). Timestamps use [`Instant`] for monotonic, high-precision
       latency measurement.
   - [`OutputEvent`]: Represents a mapped output event (keyboard key, mouse button,
@@ -30,7 +30,7 @@
   # Platform Abstraction
   The [`ButtonCode`] and [`AxisCode`] enums provide a platform-agnostic representation
   of gamepad inputs. They map platform-specific codes (like Linux evdev codes) to
-  a common domain model that works across platforms and controller types.
+  a common domain model that works across platforms and gamepad types.
 */
 use std::fmt;
 

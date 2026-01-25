@@ -1,48 +1,48 @@
 // Linux device manager implementation
-use super::controller::{extract_controller_info, is_game_controller};
 use super::errors::classify_error;
-use crate::device::{DetectionResult, DeviceError, DeviceManager};
+use super::gamepad::{extract_gamepad_info, is_gamepad};
+use crate::input::{InputDetectionResult, InputDeviceError, InputManager};
 
-pub struct LinuxDeviceManager {
+pub struct LinuxInputManager {
     // Fields can be added later if needed
 }
 
-impl LinuxDeviceManager {
+impl LinuxInputManager {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl Default for LinuxDeviceManager {
+impl Default for LinuxInputManager {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl DeviceManager for LinuxDeviceManager {
-    fn list_controllers(&self) -> anyhow::Result<DetectionResult> {
+impl InputManager for LinuxInputManager {
+    fn list_gamepads(&self) -> anyhow::Result<InputDetectionResult> {
         use evdev::enumerate;
 
         let devices: Vec<_> = enumerate().collect();
 
         println!("Found {} input devices total", devices.len());
 
-        let mut result = DetectionResult { controller_info: Vec::new(), errors: Vec::new() };
+        let mut result = InputDetectionResult { gamepad_info: Vec::new(), errors: Vec::new() };
 
         for (path, device) in devices {
-            if is_game_controller(&device) {
+            if is_gamepad(&device) {
                 let path_str = path.to_string_lossy().to_string();
-                match extract_controller_info(&device, &path_str) {
+                match extract_gamepad_info(&device, &path_str) {
                     Ok(info) => {
                         println!(
                             "✓ Detected: {} ({}) - {:?}",
-                            info.name, info.controller_type, info.capabilities
+                            info.name, info.gamepad_type, info.capabilities
                         );
-                        result.controller_info.push(info);
+                        result.gamepad_info.push(info);
                     }
                     Err(err) => {
                         let error_type = classify_error(&err);
-                        let device_err = DeviceError::new(path_str, error_type, err);
+                        let device_err = InputDeviceError::new(path_str, error_type, err);
                         println!("✗ Error: {}", device_err);
                         result.errors.push(device_err);
                     }
@@ -50,11 +50,7 @@ impl DeviceManager for LinuxDeviceManager {
             }
         }
 
-        println!(
-            "Found {} controllers ({} errors)",
-            result.controller_info.len(),
-            result.errors.len()
-        );
+        println!("Found {} gamepads ({} errors)", result.gamepad_info.len(), result.errors.len());
 
         Ok(result)
     }
@@ -66,8 +62,8 @@ mod tests {
 
     #[test]
     fn test_list_devices() {
-        let manager = LinuxDeviceManager::new();
-        let result = manager.list_controllers();
+        let manager = LinuxInputManager::new();
+        let result = manager.list_gamepads();
 
         assert!(result.is_ok());
 

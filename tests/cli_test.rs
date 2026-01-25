@@ -26,7 +26,7 @@ fn test_detect_help() {
 
     cmd.assert()
         .success()
-        .stdout(predicates::str::contains("Detect controllers"))
+        .stdout(predicates::str::contains("Detect gamepads"))
         .stdout(predicates::str::contains("connected to your computer"))
         .stdout(predicates::str::contains("--verbose"))
         .stdout(predicates::str::contains("-v"));
@@ -69,8 +69,8 @@ fn test_detect_with_verbose_flag() {
     // This will try to detect real hardware
     // We just check it doesn't crash
     cmd.assert()
-        .success() // Should succeed even with no controllers
-        .stdout(predicates::str::contains("Detecting controllers"));
+        .success() // Should succeed even with no gamepads
+        .stdout(predicates::str::contains("Detecting gamepads"));
 }
 
 #[test]
@@ -78,5 +78,5 @@ fn test_detect_short_verbose_flag() {
     let mut cmd = cargo_bin_cmd!("blazeremap");
     cmd.arg("detect").arg("-v");
 
-    cmd.assert().success().stdout(predicates::str::contains("Detecting controllers"));
+    cmd.assert().success().stdout(predicates::str::contains("Detecting gamepads"));
 }

@@ -1,6 +1,6 @@
 //! Event processing module
 //!
-//! Defines event types for controller input remapping.
+//! Defines event types for gamepad input remapping.
 
 mod input;
 mod time;

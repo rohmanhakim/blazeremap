@@ -1,10 +1,10 @@
-// Controller type definitions
+// Gamepad type definitions
 
 use std::fmt;
 
-/// Represents different controller types we can detect
+/// Represents different gamepad types we can detect
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ControllerType {
+pub enum GamepadType {
     Unknown,
     XboxOne,
     XboxSeries,
@@ -14,7 +14,7 @@ pub enum ControllerType {
     Generic,
 }
 
-impl fmt::Display for ControllerType {
+impl fmt::Display for GamepadType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::XboxOne => write!(f, "Xbox One"),
@@ -28,14 +28,14 @@ impl fmt::Display for ControllerType {
     }
 }
 
-/// Controller capabilities that can be detected
+/// Gamepad capabilities that can be detected
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ControllerCapability {
+pub enum GamepadCapability {
     ForceFeedback,
     ElitePaddles,
 }
 
-impl fmt::Display for ControllerCapability {
+impl fmt::Display for GamepadCapability {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ForceFeedback => write!(f, "Force Feedback"),
@@ -45,7 +45,7 @@ impl fmt::Display for ControllerCapability {
 }
 
 /// Helper function to convert capabilities to strings
-pub fn capabilities_to_strings(caps: &[ControllerCapability]) -> Vec<String> {
+pub fn capabilities_to_strings(caps: &[GamepadCapability]) -> Vec<String> {
     caps.iter().map(|cap| cap.to_string()).collect()
 }
 
@@ -54,19 +54,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_controller_type_display() {
-        assert_eq!(ControllerType::XboxOne.to_string(), "Xbox One");
-        assert_eq!(ControllerType::DualShock4.to_string(), "DualShock 4");
+    fn test_gamepad_type_display() {
+        assert_eq!(GamepadType::XboxOne.to_string(), "Xbox One");
+        assert_eq!(GamepadType::DualShock4.to_string(), "DualShock 4");
     }
 
     #[test]
     fn test_capability_display() {
-        assert_eq!(ControllerCapability::ForceFeedback.to_string(), "Force Feedback");
+        assert_eq!(GamepadCapability::ForceFeedback.to_string(), "Force Feedback");
     }
 
     #[test]
     fn test_capabilities_to_strings() {
-        let caps = vec![ControllerCapability::ForceFeedback, ControllerCapability::ElitePaddles];
+        let caps = vec![GamepadCapability::ForceFeedback, GamepadCapability::ElitePaddles];
         let strings = capabilities_to_strings(&caps);
         assert_eq!(strings, vec!["Force Feedback", "Elite Paddles"]);
     }

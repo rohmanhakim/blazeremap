@@ -12,7 +12,7 @@ Conversion utilities for translating evdev events to domain events.
  # Event Mapping
  | evdev EventType      | BlazeRemap EventType | Description          |
  |---------------------|----------------------|-----------------------|
- | `KEY`               | `Button`             | Controller buttons    |
+ | `KEY`               | `Button`             | Gamepad buttons    |
  | `ABSOLUTE`          | `Axis`               | Analog sticks/triggers|
  | `SYNCHRONIZATION`   | `Sync`               | Frame boundaries      |
  | `SWITCH`            | `DPad`               | Directional pad       |
@@ -25,7 +25,7 @@ Conversion utilities for translating evdev events to domain events.
 
  # Note
  Unsupported evdev event types (LED, SOUND, etc.) are filtered out and return
- `None`, as they are not relevant for controller input remapping.
+ `None`, as they are not relevant for gamepad input remapping.
 */
 
 use crate::event::{AxisCode, ButtonCode, InputEvent, system_time_to_instant};

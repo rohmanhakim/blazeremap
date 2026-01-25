@@ -4,7 +4,7 @@ Linux keyboard-to-gamepad remapping software.
 
 ## Features
 
-- ✅ Controller detection (Xbox, PlayStation, generic gamepads)
+- ✅ Gamepad detection (Xbox, PlayStation, generic gamepads)
 - ✅ Vendor identification (Microsoft, Sony, etc.)
 - ✅ Capability detection (Force Feedback, Elite Paddles)
 - ✅ Command-line interface
@@ -50,7 +50,7 @@ echo "uinput" | sudo tee -a /etc/modules
 
 ## Usage
 
-### Detect Controllers
+### Detect Gamepads
 ```bash
 blazeremap detect
 
@@ -60,14 +60,14 @@ blazeremap detect --verbose
 
 ### Example Output
 ```
-Detecting controllers...
+Detecting gamepads...
 
 Found 28 input devices total
-Found controller: Wireless Controller
+Found gamepad: Wireless Controller
 ✓ Detected: Wireless Controller (DualShock 4) - [ForceFeedback]
-Found 1 controllers (0 errors)
+Found 1 gamepads (0 errors)
 
-Found 1 controller(s):
+Found 1 gamepad(s):
 
 [0] Wireless Controller (/dev/input/event25)
  ├─ Type: DualShock 4
@@ -89,7 +89,7 @@ cargo test --lib
 # Integration tests
 cargo test --test types_test
 
-# Hardware tests (requires controller connected)
+# Hardware tests (requires gamepad connected)
 cargo test --test hardware_test -- --ignored --nocapture
 
 # All tests
@@ -108,19 +108,19 @@ src/
 ├── device/              # Device abstractions
 │   ├── mod.rs
 │   ├── manager.rs
-│   └── controller/
+│   └── gamepad/
 └── platform/            # Platform implementations
     ├── mod.rs
     └── linux/
         ├── mod.rs
         ├── errors.rs
-        ├── controller.rs
+        ├── gamepad.rs
         └── device_manager.rs
 ```
 
-## Supported Controllers
+## Supported Gamepads
 
-| Controller | Detection | Capabilities |
+| Gamepad | Detection | Capabilities |
 |------------|-----------|--------------|
 | Xbox One | ✅ | Force Feedback |
 | Xbox Series X/S | ✅ | Force Feedback |

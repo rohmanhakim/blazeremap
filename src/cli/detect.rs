@@ -1,10 +1,10 @@
-// Detect command - list connected controllers
+// Detect command - list connected gamepads
 use crate::platform;
 use clap::{ArgMatches, Command};
 use std::io::Write;
 
 pub fn command() -> Command {
-    Command::new("detect").about("Detect controllers connected to your computer").arg(
+    Command::new("detect").about("Detect gamepads connected to your computer").arg(
         clap::Arg::new("verbose")
             .short('v')
             .long("verbose")
@@ -16,10 +16,10 @@ pub fn command() -> Command {
 pub fn handle(matches: &ArgMatches) -> anyhow::Result<()> {
     let verbose = matches.get_flag("verbose");
 
-    println!("Detecting controllers...\n");
+    println!("Detecting gamepads...\n");
 
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers()?;
+    let result = device_manager.list_gamepads()?;
 
     display_results(&result, verbose);
 
@@ -27,7 +27,7 @@ pub fn handle(matches: &ArgMatches) -> anyhow::Result<()> {
 }
 
 /// Display detection results in a user-friendly format
-fn display_results(result: &crate::device::DetectionResult, verbose: bool) {
+fn display_results(result: &crate::input::InputDetectionResult, verbose: bool) {
     let mut output = std::io::stdout();
     write_results(&mut output, result, verbose).unwrap();
 }
@@ -35,13 +35,13 @@ fn display_results(result: &crate::device::DetectionResult, verbose: bool) {
 /// Internal function that writes to any writer (testable!)
 fn write_results<W: Write>(
     writer: &mut W,
-    result: &crate::device::DetectionResult,
+    result: &crate::input::InputDetectionResult,
     verbose: bool,
 ) -> std::io::Result<()> {
-    use crate::device::controller::capabilities_to_strings;
+    use crate::input::gamepad::capabilities_to_strings;
 
-    if result.controller_info.is_empty() {
-        writeln!(writer, "No controllers found.")?;
+    if result.gamepad_info.is_empty() {
+        writeln!(writer, "No gamepads found.")?;
 
         if !result.errors.is_empty() {
             writeln!(writer, "\nErrors encountered:")?;
@@ -53,11 +53,11 @@ fn write_results<W: Write>(
         return Ok(());
     }
 
-    writeln!(writer, "Found {} controller(s):\n", result.controller_info.len())?;
+    writeln!(writer, "Found {} gamepad(s):\n", result.gamepad_info.len())?;
 
-    for (i, info) in result.controller_info.iter().enumerate() {
+    for (i, info) in result.gamepad_info.iter().enumerate() {
         writeln!(writer, "[{}] {} ({})", i, info.name, info.path)?;
-        writeln!(writer, " ├─ Type: {}", info.controller_type)?;
+        writeln!(writer, " ├─ Type: {}", info.gamepad_type)?;
         writeln!(writer, " ├─ Vendor:")?;
         writeln!(writer, " │  ├─ ID: {:04X}", info.vendor_id)?;
         writeln!(writer, " │  └─ Name: {}", info.vendor_name)?;
@@ -79,7 +79,7 @@ fn write_results<W: Write>(
 
     if verbose {
         writeln!(writer, "Verbose Information:")?;
-        for (i, info) in result.controller_info.iter().enumerate() {
+        for (i, info) in result.gamepad_info.iter().enumerate() {
             writeln!(writer, "  [{}] Full path: {}", i, info.path)?;
         }
     }
@@ -90,36 +90,36 @@ fn write_results<W: Write>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::device::{ControllerCapability, ControllerInfo, ControllerType, DetectionResult};
+    use crate::input::{GamepadCapability, GamepadInfo, GamepadType, InputDetectionResult};
 
-    /// Helper to create a test controller
-    fn make_test_controller(name: &str) -> ControllerInfo {
-        ControllerInfo {
+    /// Helper to create a test gamepad
+    fn make_test_gamepad(name: &str) -> GamepadInfo {
+        GamepadInfo {
             path: "/dev/input/event99".to_string(),
             name: name.to_string(),
-            controller_type: ControllerType::DualShock4,
+            gamepad_type: GamepadType::DualShock4,
             vendor_id: 0x054C,
             vendor_name: "Sony".to_string(),
             product_id: 0x09CC,
-            capabilities: vec![ControllerCapability::ForceFeedback],
+            capabilities: vec![GamepadCapability::ForceFeedback],
         }
     }
 
     #[test]
-    fn test_display_no_controllers() {
-        let result = DetectionResult { controller_info: vec![], errors: vec![] };
+    fn test_display_no_gamepads() {
+        let result = InputDetectionResult { gamepad_info: vec![], errors: vec![] };
 
         let mut output = Vec::new();
         write_results(&mut output, &result, false).unwrap();
 
         let text = String::from_utf8(output).unwrap();
-        assert!(text.contains("No controllers found"));
+        assert!(text.contains("No gamepads found"));
     }
 
     #[test]
-    fn test_display_one_controller() {
-        let result = DetectionResult {
-            controller_info: vec![make_test_controller("Test Controller")],
+    fn test_display_one_gamepad() {
+        let result = InputDetectionResult {
+            gamepad_info: vec![make_test_gamepad("Test Gamepad")],
             errors: vec![],
         };
 
@@ -129,8 +129,8 @@ mod tests {
         let text = String::from_utf8(output).unwrap();
 
         // Check for expected content
-        assert!(text.contains("Found 1 controller(s)"));
-        assert!(text.contains("Test Controller"));
+        assert!(text.contains("Found 1 gamepad(s)"));
+        assert!(text.contains("Test Gamepad"));
         assert!(text.contains("DualShock 4"));
         assert!(text.contains("Sony"));
         assert!(text.contains("054C"));
@@ -138,12 +138,9 @@ mod tests {
     }
 
     #[test]
-    fn test_display_multiple_controllers() {
-        let result = DetectionResult {
-            controller_info: vec![
-                make_test_controller("Controller 1"),
-                make_test_controller("Controller 2"),
-            ],
+    fn test_display_multiple_gamepads() {
+        let result = InputDetectionResult {
+            gamepad_info: vec![make_test_gamepad("Gamepad 1"), make_test_gamepad("Gamepad 2")],
             errors: vec![],
         };
 
@@ -152,15 +149,15 @@ mod tests {
 
         let text = String::from_utf8(output).unwrap();
 
-        assert!(text.contains("Found 2 controller(s)"));
-        assert!(text.contains("[0] Controller 1"));
-        assert!(text.contains("[1] Controller 2"));
+        assert!(text.contains("Found 2 gamepad(s)"));
+        assert!(text.contains("[0] Gamepad 1"));
+        assert!(text.contains("[1] Gamepad 2"));
     }
 
     #[test]
     fn test_verbose_mode() {
-        let result = DetectionResult {
-            controller_info: vec![make_test_controller("Test Controller")],
+        let result = InputDetectionResult {
+            gamepad_info: vec![make_test_gamepad("Test Gamepad")],
             errors: vec![],
         };
 
@@ -181,7 +178,7 @@ mod tests {
     #[test]
     fn test_tree_formatting() {
         let result =
-            DetectionResult { controller_info: vec![make_test_controller("Test")], errors: vec![] };
+            InputDetectionResult { gamepad_info: vec![make_test_gamepad("Test")], errors: vec![] };
 
         let mut output = Vec::new();
         write_results(&mut output, &result, false).unwrap();

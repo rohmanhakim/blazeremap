@@ -9,45 +9,45 @@
 //! - Need root/input group permissions
 //! - Can't run in CI/CD environments
 
-use blazeremap::device::ControllerType;
+use blazeremap::input::GamepadType;
 use blazeremap::platform;
 
-/// Test that we can detect at least one controller
+/// Test that we can detect at least one gamepad
 ///
 /// Prerequisites:
-/// - At least one controller must be connected
+/// - At least one gamepad must be connected
 /// - User must have permissions to read /dev/input
 #[test]
 #[ignore] // Only run when explicitly requested
-fn test_detect_real_controller() {
+fn test_detect_real_gamepad() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
-    // Should find at least one controller
+    // Should find at least one gamepad
     assert!(
-        !result.controller_info.is_empty(),
-        "No controllers detected! Make sure a controller is connected."
+        !result.gamepad_info.is_empty(),
+        "No gamepads detected! Make sure a gamepad is connected."
     );
 
     // Print what we found
-    println!("\nDetected controllers:");
-    for (i, info) in result.controller_info.iter().enumerate() {
-        println!("  [{}] {} - {}", i, info.name, info.controller_type);
+    println!("\nDetected gamepads:");
+    for (i, info) in result.gamepad_info.iter().enumerate() {
+        println!("  [{}] {} - {}", i, info.name, info.gamepad_type);
     }
 }
 
-/// Test that detected controllers have valid data
+/// Test that detected gamepads have valid data
 #[test]
 #[ignore]
-fn test_controller_info_validity() {
+fn test_gamepad_info_validity() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
-    assert!(!result.controller_info.is_empty(), "No controllers detected for validation test");
+    assert!(!result.gamepad_info.is_empty(), "No gamepads detected for validation test");
 
-    for info in &result.controller_info {
+    for info in &result.gamepad_info {
         // Name should not be empty
-        assert!(!info.name.is_empty(), "Controller name is empty");
+        assert!(!info.name.is_empty(), "Gamepad name is empty");
 
         // Path should be a valid /dev/input path
         assert!(info.path.starts_with("/dev/input/"), "Invalid device path: {}", info.path);
@@ -55,11 +55,11 @@ fn test_controller_info_validity() {
         // Vendor ID should not be zero (unlikely for real hardware)
         assert_ne!(info.vendor_id, 0, "Vendor ID is zero");
 
-        // Controller type should not be Unknown
+        // Gamepad type should not be Unknown
         assert_ne!(
-            info.controller_type,
-            ControllerType::Unknown,
-            "Controller type is Unknown for {}",
+            info.gamepad_type,
+            GamepadType::Unknown,
+            "Gamepad type is Unknown for {}",
             info.name
         );
 
@@ -67,33 +67,33 @@ fn test_controller_info_validity() {
     }
 }
 
-/// Test that we don't detect keyboards or mice as controllers
+/// Test that we don't detect keyboards or mice as gamepads
 #[test]
 #[ignore]
 fn test_no_false_positives() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Check that no detected device has keyboard/mouse-like names
-    for info in &result.controller_info {
+    for info in &result.gamepad_info {
         let name_lower = info.name.to_lowercase();
 
         // These should never appear
         assert!(
             !name_lower.contains("keyboard"),
-            "False positive: keyboard detected as controller: {}",
+            "False positive: keyboard detected as gamepad: {}",
             info.name
         );
         assert!(
             !name_lower.contains("mouse")
-                || name_lower.contains("controller")
+                || name_lower.contains("gamepad")
                 || name_lower.contains("gamepad"),
-            "False positive: mouse detected as controller: {}",
+            "False positive: mouse detected as gamepad: {}",
             info.name
         );
         assert!(
             !name_lower.contains("power button"),
-            "False positive: power button detected as controller: {}",
+            "False positive: power button detected as gamepad: {}",
             info.name
         );
     }
@@ -106,28 +106,23 @@ fn test_no_false_positives() {
 #[ignore]
 fn test_dualshock4_detection() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Try to find a DualShock 4
-    let ds4 = result
-        .controller_info
-        .iter()
-        .find(|info| info.controller_type == ControllerType::DualShock4);
+    let ds4 = result.gamepad_info.iter().find(|info| info.gamepad_type == GamepadType::DualShock4);
 
-    if let Some(controller) = ds4 {
+    if let Some(gamepad) = ds4 {
         println!("Found DualShock 4:");
-        println!("  Name: {}", controller.name);
-        println!("  Vendor: {} ({:04X})", controller.vendor_name, controller.vendor_id);
-        println!("  Capabilities: {:?}", controller.capabilities);
+        println!("  Name: {}", gamepad.name);
+        println!("  Vendor: {} ({:04X})", gamepad.vendor_name, gamepad.vendor_id);
+        println!("  Capabilities: {:?}", gamepad.capabilities);
 
         // DualShock 4 should have Sony vendor ID
-        assert_eq!(controller.vendor_id, 0x054C, "DualShock 4 should have Sony vendor ID");
+        assert_eq!(gamepad.vendor_id, 0x054C, "DualShock 4 should have Sony vendor ID");
 
         // Should detect force feedback capability
         assert!(
-            controller
-                .capabilities
-                .contains(&blazeremap::device::ControllerCapability::ForceFeedback),
+            gamepad.capabilities.contains(&blazeremap::input::GamepadCapability::ForceFeedback),
             "DualShock 4 should have force feedback capability"
         );
     } else {
@@ -135,64 +130,59 @@ fn test_dualshock4_detection() {
     }
 }
 
-/// Test Xbox controller detection
+/// Test Xbox gamepad detection
 #[test]
 #[ignore]
 fn test_xbox_detection() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
-    // Try to find any Xbox controller
-    let xbox = result.controller_info.iter().find(|info| {
+    // Try to find any Xbox gamepad
+    let xbox = result.gamepad_info.iter().find(|info| {
         matches!(
-            info.controller_type,
-            ControllerType::XboxOne | ControllerType::XboxSeries | ControllerType::XboxElite
+            info.gamepad_type,
+            GamepadType::XboxOne | GamepadType::XboxSeries | GamepadType::XboxElite
         )
     });
 
-    if let Some(controller) = xbox {
-        println!("Found Xbox controller:");
-        println!("  Name: {}", controller.name);
-        println!("  Type: {}", controller.controller_type);
-        println!("  Capabilities: {:?}", controller.capabilities);
+    if let Some(gamepad) = xbox {
+        println!("Found Xbox gamepad:");
+        println!("  Name: {}", gamepad.name);
+        println!("  Type: {}", gamepad.gamepad_type);
+        println!("  Capabilities: {:?}", gamepad.capabilities);
 
-        // Xbox controllers should have Microsoft vendor ID
-        assert_eq!(controller.vendor_id, 0x045E, "Xbox controller should have Microsoft vendor ID");
+        // Xbox gamepads should have Microsoft vendor ID
+        assert_eq!(gamepad.vendor_id, 0x045E, "Xbox gamepad should have Microsoft vendor ID");
     } else {
-        println!("⚠ No Xbox controller detected (test skipped)");
+        println!("⚠ No Xbox gamepad detected (test skipped)");
     }
 }
 
-/// Test Elite controller paddle detection
+/// Test Elite gamepad paddle detection
 #[test]
 #[ignore]
 fn test_elite_paddle_detection() {
     let device_manager = platform::new_device_manager();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
-    // Look for Elite controller
-    let elite = result
-        .controller_info
-        .iter()
-        .find(|info| info.controller_type == ControllerType::XboxElite);
+    // Look for Elite gamepad
+    let elite = result.gamepad_info.iter().find(|info| info.gamepad_type == GamepadType::XboxElite);
 
-    if let Some(controller) = elite {
-        println!("Found Xbox Elite controller:");
-        println!("  Capabilities: {:?}", controller.capabilities);
+    if let Some(gamepad) = elite {
+        println!("Found Xbox Elite gamepad:");
+        println!("  Capabilities: {:?}", gamepad.capabilities);
 
         // Elite should have paddle capability
         assert!(
-            controller
-                .capabilities
-                .contains(&blazeremap::device::ControllerCapability::ElitePaddles),
-            "Elite controller should have paddle capability"
+            gamepad.capabilities.contains(&blazeremap::input::GamepadCapability::ElitePaddles),
+            "Elite gamepad should have paddle capability"
         );
     } else {
-        println!("⚠ No Xbox Elite controller detected (test skipped)");
+        println!("⚠ No Xbox Elite gamepad detected (test skipped)");
     }
 }
 
-/// Test that controller detection is fast (< 1 second)
+/// Test that gamepad detection is fast (< 1 second)
 #[test]
 #[ignore]
 fn test_detection_performance() {
@@ -201,17 +191,17 @@ fn test_detection_performance() {
     let device_manager = platform::new_device_manager();
 
     let start = Instant::now();
-    let result = device_manager.list_controllers().expect("Failed to list controllers");
+    let result = device_manager.list_gamepads().expect("Failed to list gamepads");
     let duration = start.elapsed();
 
     println!("Detection took: {:?}", duration);
-    println!("Found {} controllers", result.controller_info.len());
+    println!("Found {} gamepads", result.gamepad_info.len());
 
     // Should complete in under 1 second
     assert!(duration.as_secs() < 1, "Detection took too long: {:?}", duration);
 }
 
-/// Test that we can detect controllers multiple times reliably
+/// Test that we can detect gamepads multiple times reliably
 /// and measure performance characteristics
 #[test]
 #[ignore]
@@ -227,12 +217,12 @@ fn test_repeated_detection() {
 
     for i in 0..iterations {
         let start = Instant::now();
-        let result = device_manager.list_controllers().expect("Failed to list controllers");
+        let result = device_manager.list_gamepads().expect("Failed to list gamepads");
         let duration = start.elapsed();
 
         durations.push(duration);
 
-        assert!(!result.controller_info.is_empty(), "No controllers on iteration {}", i);
+        assert!(!result.gamepad_info.is_empty(), "No gamepads on iteration {}", i);
 
         println!("  Iteration {}: {:?}", i + 1, duration);
     }

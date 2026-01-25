@@ -1,12 +1,12 @@
 use std::time::Instant;
 
-use crate::device::controller::Controller;
-use crate::platform::linux::LinuxController;
+use crate::input::gamepad::Gamepad;
+use crate::platform::linux::LinuxGamepad;
 use anyhow::Result;
 use clap::Command;
 
 pub fn command() -> Command {
-    Command::new("read").about("Read and display controller events (debugging)").arg(
+    Command::new("read").about("Read and display gamepad events (debugging)").arg(
         clap::Arg::new("device")
             .help("Device path (e.g., /dev/input/event3)")
             .required(true)
@@ -18,7 +18,7 @@ pub fn handle(matches: &clap::ArgMatches) -> Result<()> {
     let device_path = matches.get_one::<String>("device").unwrap();
 
     println!("Opening device: {}", device_path);
-    let mut controller = LinuxController::open(device_path)?;
+    let mut gamepad = LinuxGamepad::open(device_path)?;
 
     println!("Reading events (Ctrl+C to stop)...\n");
     println!("Format: [elapsed since first event][Δ from previous] Event\n");
@@ -27,7 +27,7 @@ pub fn handle(matches: &clap::ArgMatches) -> Result<()> {
     let mut last_timestamp: Option<Instant> = None;
 
     loop {
-        match controller.read_event()? {
+        match gamepad.read_event()? {
             Some(event) => {
                 if !matches!(event, crate::event::InputEvent::Sync { .. }) {
                     let timestamp = event.timestamp();

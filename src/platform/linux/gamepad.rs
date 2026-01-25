@@ -1,16 +1,15 @@
-// Controller detection and information extraction
+// Gamepad detection and information extraction
 use crate::{
-    device::controller::{
-        Controller, ControllerCapability, ControllerInfo, get_known_vendor_database,
-        identify_controller,
-    },
     event::InputEvent,
+    input::gamepad::{
+        Gamepad, GamepadCapability, GamepadInfo, get_known_vendor_database, identify_gamepad,
+    },
     platform::linux::evdev_to_input,
 };
 use anyhow::Context;
 use evdev::{AttributeSetRef, Device, FFEffectCode};
 
-// Constants for controller detection
+// Constants for gamepad detection
 const BTN_GAMEPAD_MIN: u16 = 0x130;
 const BTN_GAMEPAD_MAX: u16 = 0x13f;
 const BTN_JOYSTICK_MIN: u16 = 0x120;
@@ -19,10 +18,10 @@ const BTN_TRIGGER_HAPPY1: u16 = 0x2c0;
 const BTN_TRIGGER_HAPPY4: u16 = 0x2c3;
 const ELITE_PADDLE_COUNT: usize = 4;
 
-/// Check if device should be excluded based on name
+/// Check if input device should be excluded based on name
 ///
-/// Some virtual/emulated devices pass all hardware checks but aren't
-/// real controllers (e.g., Steam Virtual Gamepad, remote desktop devices).
+/// Some virtual/emulated input devices pass all hardware checks but aren't
+/// real gamepads (e.g., Steam Virtual Gamepad, remote desktop devices).
 /// This provides a final safety check based on device naming.
 ///
 /// Mirrors: isExcludedByName() from Go
@@ -60,8 +59,8 @@ fn is_excluded_by_name(name: &str) -> bool {
     false
 }
 
-/// Check if a device is a game controller
-pub(super) fn is_game_controller(device: &Device) -> bool {
+/// Check if a device is a gamepad
+pub(super) fn is_gamepad(device: &Device) -> bool {
     use evdev::{AbsoluteAxisCode, EventType};
 
     let supported_events = device.supported_events();
@@ -114,17 +113,17 @@ pub(super) fn is_game_controller(device: &Device) -> bool {
     // Check device name
     let device_name = device.name().unwrap_or("");
 
-    // If name contains "controller", "gamepad", "joystick" - probably a controller
+    // If name contains "controller", "gamepad", "joystick" - probably a gamepad
     let name_lower = device_name.to_lowercase();
-    let controller_keywords = ["controller", "gamepad", "joystick", "pad"];
-    let is_likely_controller = controller_keywords.iter().any(|kw| name_lower.contains(kw));
+    let gamepad_keywords = ["controller", "gamepad", "joystick", "pad"];
+    let is_likely_gamepad = gamepad_keywords.iter().any(|kw| name_lower.contains(kw));
 
-    // If it looks like a controller by name, skip exclusion check
-    if !is_likely_controller && is_excluded_by_name(device_name) {
+    // If it looks like a gamepad by name, skip exclusion check
+    if !is_likely_gamepad && is_excluded_by_name(device_name) {
         return false;
     }
 
-    println!("Found controller: {}", device_name);
+    println!("Found gamepad: {}", device_name);
     true
 }
 
@@ -158,11 +157,8 @@ fn has_elite_paddles(device: &Device) -> bool {
     paddle_count >= ELITE_PADDLE_COUNT
 }
 
-/// Extract controller information from an evdev device
-pub(super) fn extract_controller_info(
-    device: &Device,
-    path: &str,
-) -> anyhow::Result<ControllerInfo> {
+/// Extract gamepad information from an evdev device
+pub(super) fn extract_gamepad_info(device: &Device, path: &str) -> anyhow::Result<GamepadInfo> {
     let name = device.name().unwrap_or("Unknown").to_string();
     let input_id = device.input_id();
 
@@ -175,22 +171,22 @@ pub(super) fn extract_controller_info(
         .map(|&name| name.to_string())
         .unwrap_or_else(|| format!("Unknown (0x{:04X})", vendor_id));
 
-    let controller_type = identify_controller(vendor_id, product_id);
+    let gamepad_type = identify_gamepad(vendor_id, product_id);
 
     let mut capabilities = Vec::new();
 
     if has_force_feedback(device) {
-        capabilities.push(ControllerCapability::ForceFeedback);
+        capabilities.push(GamepadCapability::ForceFeedback);
     }
 
     if has_elite_paddles(device) {
-        capabilities.push(ControllerCapability::ElitePaddles);
+        capabilities.push(GamepadCapability::ElitePaddles);
     }
 
-    Ok(ControllerInfo {
+    Ok(GamepadInfo {
         path: path.to_string(),
         name,
-        controller_type,
+        gamepad_type,
         vendor_id,
         vendor_name,
         product_id,
@@ -198,34 +194,34 @@ pub(super) fn extract_controller_info(
     })
 }
 
-pub struct LinuxController {
-    info: ControllerInfo,
+pub struct LinuxGamepad {
+    info: GamepadInfo,
     device: Device,
 }
 
-impl LinuxController {
-    pub fn new(info: ControllerInfo, device: Device) -> Self {
+impl LinuxGamepad {
+    pub fn new(info: GamepadInfo, device: Device) -> Self {
         Self { info, device }
     }
 
-    /// Open a controller device at the given path
+    /// Open a gamepad device at the given path
     ///
-    /// This is the primary way to construct a LinuxController.
+    /// This is the primary way to construct a LinuxGamepad.
     pub fn open(path: &str) -> anyhow::Result<Self> {
         // Open device first
         let device =
             Device::open(path).with_context(|| format!("Failed to open device at {}", path))?;
 
         // Extract info from opened device
-        let info = extract_controller_info(&device, path)?;
+        let info = extract_gamepad_info(&device, path)?;
 
         // Construct with both
         Ok(Self::new(info, device))
     }
 }
 
-impl Controller for LinuxController {
-    fn get_info(&self) -> &ControllerInfo {
+impl Gamepad for LinuxGamepad {
+    fn get_info(&self) -> &GamepadInfo {
         &self.info
     }
 
@@ -277,8 +273,8 @@ impl Controller for LinuxController {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::device::controller::ControllerInfo;
-    use crate::device::controller::{ControllerCapability, ControllerType};
+    use crate::input::gamepad::GamepadInfo;
+    use crate::input::gamepad::{GamepadCapability, GamepadType};
 
     #[test]
     fn test_is_excluded_by_name() {
@@ -291,20 +287,20 @@ mod tests {
         // Test non-excluded names
         assert!(!is_excluded_by_name("Xbox Wireless Controller"));
         assert!(!is_excluded_by_name("DualSense Wireless Controller"));
-        assert!(!is_excluded_by_name("Generic Gamepad"));
+        assert!(!is_excluded_by_name("Generic Controller"));
     }
 
     #[test]
-    fn test_linux_controller_construction() {
-        // Create mock ControllerInfo
-        let _info = ControllerInfo {
+    fn test_linux_gamepad_construction() {
+        // Create mock GamepadInfo
+        let _info = GamepadInfo {
             path: "/dev/input/event3".to_string(),
-            name: "Test Controller".to_string(),
-            controller_type: ControllerType::XboxOne,
+            name: "Test Gamepad".to_string(),
+            gamepad_type: GamepadType::XboxOne,
             vendor_id: 0x045e,
             vendor_name: "Microsoft".to_string(),
             product_id: 0x02ea,
-            capabilities: vec![ControllerCapability::ForceFeedback],
+            capabilities: vec![GamepadCapability::ForceFeedback],
         };
 
         // This test would require a mock Device, which is complex
@@ -325,13 +321,13 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_controller_info() {
+    fn test_extract_gamepad_info() {
         // This would require creating a mock Device
         // For now, we skip this as it requires complex mocking
     }
 
     #[test]
-    fn test_controller_trait_methods() {
+    fn test_gamepad_trait_methods() {
         // Test that the trait methods exist and return expected types
         // We can't easily test the actual functionality without mocking
     }
@@ -422,7 +418,7 @@ mod debug_tests {
         let mut count_with_filter = 0;
 
         for (_path, device) in &devices {
-            if is_game_controller(device) {
+            if is_gamepad(device) {
                 let name = device.name().unwrap_or("Unknown");
                 println!("  ✓ {}", name);
                 count_with_filter += 1;

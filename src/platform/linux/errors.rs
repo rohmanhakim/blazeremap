@@ -1,5 +1,5 @@
 // Linux-specific errors
-use crate::device::ErrorType;
+use crate::input::ErrorType;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
