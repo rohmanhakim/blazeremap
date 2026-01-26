@@ -1,39 +1,61 @@
-use crate::{
-    event::{ButtonCode, KeyboardCode},
-    mapping::types::TargetType,
-};
+use crate::event::{AxisCode, AxisDirection, ButtonCode, KeyboardCode};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MappingRule {
-    pub source_code: ButtonCode,
-    pub target_code: KeyboardCode,
-    pub target_type: TargetType,
+pub enum MappingRule {
+    ButtonToKey { source: ButtonCode, target: KeyboardCode },
+    AxisDirectionToKey { source: AxisCode, direction: AxisDirection, target: KeyboardCode },
 }
 
 impl MappingRule {
-    pub fn keyboard(source_code: ButtonCode, target_code: KeyboardCode) -> Self {
-        Self { source_code, target_code, target_type: TargetType::Keyboard }
+    pub fn button_to_key(source: ButtonCode, target: KeyboardCode) -> Self {
+        Self::ButtonToKey { source, target }
+    }
+
+    pub fn axis_direction_to_key(
+        source: AxisCode,
+        direction: AxisDirection,
+        target: KeyboardCode,
+    ) -> Self {
+        Self::AxisDirectionToKey { source, direction, target }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::mapping::{MappingRule::AxisDirectionToKey, rules::MappingRule::ButtonToKey};
+
     use super::*;
 
     #[test]
-    fn test_mapping_rule_keyboard_creation() {
-        let rule = MappingRule::keyboard(ButtonCode::South, KeyboardCode::Space);
+    fn test_mapping_button_to_keyboard_creation() {
+        let rule = MappingRule::button_to_key(ButtonCode::South, KeyboardCode::Space);
 
-        assert_eq!(rule.source_code, ButtonCode::South);
-        assert_eq!(rule.target_code, KeyboardCode::Space);
-        assert_eq!(rule.target_type, TargetType::Keyboard);
+        assert_eq!(rule, ButtonToKey { source: ButtonCode::South, target: KeyboardCode::Space });
+    }
+
+    #[test]
+    fn test_mapping_axis_to_keyboard_creation() {
+        let rule = MappingRule::axis_direction_to_key(
+            AxisCode::DPadY,
+            AxisDirection::Positive,
+            KeyboardCode::Up,
+        );
+
+        assert_eq!(
+            rule,
+            AxisDirectionToKey {
+                source: AxisCode::DPadY,
+                direction: AxisDirection::Positive,
+                target: KeyboardCode::Up
+            }
+        );
     }
 
     #[test]
     fn test_mapping_rule_equality() {
-        let rule1 = MappingRule::keyboard(ButtonCode::South, KeyboardCode::Space);
-        let rule2 = MappingRule::keyboard(ButtonCode::South, KeyboardCode::Space);
-        let rule3 = MappingRule::keyboard(ButtonCode::East, KeyboardCode::E);
+        let rule1 = MappingRule::button_to_key(ButtonCode::South, KeyboardCode::Space);
+        let rule2 = MappingRule::button_to_key(ButtonCode::South, KeyboardCode::Space);
+        let rule3 = MappingRule::button_to_key(ButtonCode::East, KeyboardCode::E);
 
         assert_eq!(rule1, rule2);
         assert_ne!(rule1, rule3);

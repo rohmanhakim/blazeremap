@@ -20,7 +20,7 @@ use blazeremap::platform;
 #[test]
 #[ignore] // Only run when explicitly requested
 fn test_detect_real_gamepad() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Should find at least one gamepad
@@ -40,7 +40,7 @@ fn test_detect_real_gamepad() {
 #[test]
 #[ignore]
 fn test_gamepad_info_validity() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     assert!(!result.gamepad_info.is_empty(), "No gamepads detected for validation test");
@@ -71,7 +71,7 @@ fn test_gamepad_info_validity() {
 #[test]
 #[ignore]
 fn test_no_false_positives() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Check that no detected device has keyboard/mouse-like names
@@ -105,7 +105,7 @@ fn test_no_false_positives() {
 #[test]
 #[ignore]
 fn test_dualshock4_detection() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Try to find a DualShock 4
@@ -134,7 +134,7 @@ fn test_dualshock4_detection() {
 #[test]
 #[ignore]
 fn test_xbox_detection() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Try to find any Xbox gamepad
@@ -162,7 +162,7 @@ fn test_xbox_detection() {
 #[test]
 #[ignore]
 fn test_elite_paddle_detection() {
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
 
     // Look for Elite gamepad
@@ -188,7 +188,7 @@ fn test_elite_paddle_detection() {
 fn test_detection_performance() {
     use std::time::Instant;
 
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
 
     let start = Instant::now();
     let result = device_manager.list_gamepads().expect("Failed to list gamepads");
@@ -208,7 +208,7 @@ fn test_detection_performance() {
 fn test_repeated_detection() {
     use std::time::Instant;
 
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
 
     let iterations = 10;
     let mut durations = Vec::new();

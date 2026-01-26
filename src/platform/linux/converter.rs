@@ -28,12 +28,11 @@ Conversion utilities for translating evdev events to domain events.
  `None`, as they are not relevant for gamepad input remapping.
 */
 
-use crate::event::{AxisCode, ButtonCode, InputEvent, system_time_to_instant};
+use crate::event::{AxisCode, ButtonCode, InputEvent, KeyboardCode, system_time_to_instant};
 
 pub fn evdev_to_input(ev: evdev::InputEvent) -> Option<InputEvent> {
     //  Convert kernel's SystemTime to Instant (preserves timing)
     let timestamp = system_time_to_instant(ev.timestamp());
-    println!("evdev_to_input timestamp: {:?}", timestamp);
 
     match ev.destructure() {
         evdev::EventSummary::Key(_, key_code, _value) => {
@@ -42,7 +41,7 @@ pub fn evdev_to_input(ev: evdev::InputEvent) -> Option<InputEvent> {
             Some(InputEvent::Button { code: button_code, pressed, timestamp })
         }
         evdev::EventSummary::AbsoluteAxis(_, axis_code, value) => {
-            let axis_code = axis_to_axis_code(axis_code);
+            let axis_code = absolute_axis_to_axis_code(axis_code);
             Some(InputEvent::Axis { code: axis_code, value, timestamp })
         }
         evdev::EventSummary::Switch(_, _switch_code, _value) => {
@@ -78,7 +77,234 @@ fn key_to_button_code(key: evdev::KeyCode) -> ButtonCode {
     }
 }
 
-fn axis_to_axis_code(axis: evdev::AbsoluteAxisCode) -> AxisCode {
+pub fn keyboard_code_to_evdev_key(code: KeyboardCode) -> evdev::KeyCode {
+    match code {
+        KeyboardCode::Reserved => evdev::KeyCode::KEY_RESERVED,
+        KeyboardCode::Escape => evdev::KeyCode::KEY_ESC,
+        KeyboardCode::Num1 => evdev::KeyCode::KEY_1,
+        KeyboardCode::Num2 => evdev::KeyCode::KEY_2,
+        KeyboardCode::Num3 => evdev::KeyCode::KEY_3,
+        KeyboardCode::Num4 => evdev::KeyCode::KEY_4,
+        KeyboardCode::Num5 => evdev::KeyCode::KEY_5,
+        KeyboardCode::Num6 => evdev::KeyCode::KEY_6,
+        KeyboardCode::Num7 => evdev::KeyCode::KEY_7,
+        KeyboardCode::Num8 => evdev::KeyCode::KEY_8,
+        KeyboardCode::Num9 => evdev::KeyCode::KEY_9,
+        KeyboardCode::Num0 => evdev::KeyCode::KEY_0,
+        KeyboardCode::Minus => evdev::KeyCode::KEY_MINUS,
+        KeyboardCode::Equal => evdev::KeyCode::KEY_EQUAL,
+        KeyboardCode::Backspace => evdev::KeyCode::KEY_BACKSPACE,
+        KeyboardCode::Tab => evdev::KeyCode::KEY_TAB,
+        KeyboardCode::Q => evdev::KeyCode::KEY_Q,
+        KeyboardCode::W => evdev::KeyCode::KEY_W,
+        KeyboardCode::E => evdev::KeyCode::KEY_E,
+        KeyboardCode::R => evdev::KeyCode::KEY_R,
+        KeyboardCode::T => evdev::KeyCode::KEY_T,
+        KeyboardCode::Y => evdev::KeyCode::KEY_Y,
+        KeyboardCode::U => evdev::KeyCode::KEY_U,
+        KeyboardCode::I => evdev::KeyCode::KEY_I,
+        KeyboardCode::O => evdev::KeyCode::KEY_O,
+        KeyboardCode::P => evdev::KeyCode::KEY_P,
+        KeyboardCode::LeftBrace => evdev::KeyCode::KEY_LEFTBRACE,
+        KeyboardCode::RightBrace => evdev::KeyCode::KEY_RIGHTBRACE,
+        KeyboardCode::Enter => evdev::KeyCode::KEY_ENTER,
+        KeyboardCode::LeftControl => evdev::KeyCode::KEY_LEFTCTRL,
+        KeyboardCode::A => evdev::KeyCode::KEY_A,
+        KeyboardCode::S => evdev::KeyCode::KEY_S,
+        KeyboardCode::D => evdev::KeyCode::KEY_D,
+        KeyboardCode::F => evdev::KeyCode::KEY_F,
+        KeyboardCode::G => evdev::KeyCode::KEY_G,
+        KeyboardCode::H => evdev::KeyCode::KEY_H,
+        KeyboardCode::J => evdev::KeyCode::KEY_J,
+        KeyboardCode::K => evdev::KeyCode::KEY_K,
+        KeyboardCode::L => evdev::KeyCode::KEY_L,
+        KeyboardCode::Semicolon => evdev::KeyCode::KEY_SEMICOLON,
+        KeyboardCode::Apostrophe => evdev::KeyCode::KEY_APOSTROPHE,
+        KeyboardCode::Grave => evdev::KeyCode::KEY_GRAVE,
+        KeyboardCode::LeftShift => evdev::KeyCode::KEY_LEFTSHIFT,
+        KeyboardCode::Backslash => evdev::KeyCode::KEY_BACKSLASH,
+        KeyboardCode::Z => evdev::KeyCode::KEY_Z,
+        KeyboardCode::X => evdev::KeyCode::KEY_X,
+        KeyboardCode::C => evdev::KeyCode::KEY_C,
+        KeyboardCode::V => evdev::KeyCode::KEY_V,
+        KeyboardCode::B => evdev::KeyCode::KEY_B,
+        KeyboardCode::N => evdev::KeyCode::KEY_N,
+        KeyboardCode::M => evdev::KeyCode::KEY_M,
+        KeyboardCode::Comma => evdev::KeyCode::KEY_COMMA,
+        KeyboardCode::Dot => evdev::KeyCode::KEY_DOT,
+        KeyboardCode::Slash => evdev::KeyCode::KEY_SLASH,
+        KeyboardCode::RightShift => evdev::KeyCode::KEY_RIGHTSHIFT,
+        KeyboardCode::KpAsterisk => evdev::KeyCode::KEY_KPASTERISK,
+        KeyboardCode::LeftAlt => evdev::KeyCode::KEY_LEFTALT,
+        KeyboardCode::Space => evdev::KeyCode::KEY_SPACE,
+        KeyboardCode::CapsLock => evdev::KeyCode::KEY_CAPSLOCK,
+        KeyboardCode::F1 => evdev::KeyCode::KEY_F1,
+        KeyboardCode::F2 => evdev::KeyCode::KEY_F2,
+        KeyboardCode::F3 => evdev::KeyCode::KEY_F3,
+        KeyboardCode::F4 => evdev::KeyCode::KEY_F4,
+        KeyboardCode::F5 => evdev::KeyCode::KEY_F5,
+        KeyboardCode::F6 => evdev::KeyCode::KEY_F6,
+        KeyboardCode::F7 => evdev::KeyCode::KEY_F7,
+        KeyboardCode::F8 => evdev::KeyCode::KEY_F8,
+        KeyboardCode::F9 => evdev::KeyCode::KEY_F9,
+        KeyboardCode::F10 => evdev::KeyCode::KEY_F10,
+        KeyboardCode::NumLock => evdev::KeyCode::KEY_NUMLOCK,
+        KeyboardCode::ScrollLock => evdev::KeyCode::KEY_SCROLLLOCK,
+        KeyboardCode::Kp7 => evdev::KeyCode::KEY_KP7,
+        KeyboardCode::Kp8 => evdev::KeyCode::KEY_KP8,
+        KeyboardCode::Kp9 => evdev::KeyCode::KEY_KP9,
+        KeyboardCode::KpMinus => evdev::KeyCode::KEY_KPMINUS,
+        KeyboardCode::Kp4 => evdev::KeyCode::KEY_KP4,
+        KeyboardCode::Kp5 => evdev::KeyCode::KEY_KP5,
+        KeyboardCode::Kp6 => evdev::KeyCode::KEY_KP6,
+        KeyboardCode::KpPlus => evdev::KeyCode::KEY_KPPLUS,
+        KeyboardCode::Kp1 => evdev::KeyCode::KEY_KP1,
+        KeyboardCode::Kp2 => evdev::KeyCode::KEY_KP2,
+        KeyboardCode::Kp3 => evdev::KeyCode::KEY_KP3,
+        KeyboardCode::Kp0 => evdev::KeyCode::KEY_KP0,
+        KeyboardCode::KpDot => evdev::KeyCode::KEY_KPDOT,
+        KeyboardCode::KpEnter => evdev::KeyCode::KEY_KPENTER,
+        KeyboardCode::RightControl => evdev::KeyCode::KEY_RIGHTCTRL,
+        KeyboardCode::KpSlash => evdev::KeyCode::KEY_KPSLASH,
+        KeyboardCode::SysRq => evdev::KeyCode::KEY_SYSRQ,
+        KeyboardCode::RightAlt => evdev::KeyCode::KEY_RIGHTALT,
+        KeyboardCode::LineFeed => evdev::KeyCode::KEY_LINEFEED,
+        KeyboardCode::Home => evdev::KeyCode::KEY_HOME,
+        KeyboardCode::Up => evdev::KeyCode::KEY_UP,
+        KeyboardCode::PageUp => evdev::KeyCode::KEY_PAGEUP,
+        KeyboardCode::Left => evdev::KeyCode::KEY_LEFT,
+        KeyboardCode::Right => evdev::KeyCode::KEY_RIGHT,
+        KeyboardCode::End => evdev::KeyCode::KEY_END,
+        KeyboardCode::Down => evdev::KeyCode::KEY_DOWN,
+        KeyboardCode::PageDown => evdev::KeyCode::KEY_PAGEDOWN,
+        KeyboardCode::Insert => evdev::KeyCode::KEY_INSERT,
+        KeyboardCode::Delete => evdev::KeyCode::KEY_DELETE,
+        KeyboardCode::Macro => evdev::KeyCode::KEY_MACRO,
+        KeyboardCode::Mute => evdev::KeyCode::KEY_MUTE,
+        KeyboardCode::VolumeDown => evdev::KeyCode::KEY_VOLUMEDOWN,
+        KeyboardCode::VolumeUp => evdev::KeyCode::KEY_VOLUMEUP,
+        KeyboardCode::Power => evdev::KeyCode::KEY_POWER,
+        KeyboardCode::KpEqual => evdev::KeyCode::KEY_KPEQUAL,
+        KeyboardCode::KpPlusMinus => evdev::KeyCode::KEY_KPPLUSMINUS,
+        KeyboardCode::Pause => evdev::KeyCode::KEY_PAUSE,
+        KeyboardCode::Scale => evdev::KeyCode::KEY_SCALE,
+        KeyboardCode::KpComma => evdev::KeyCode::KEY_KPCOMMA,
+        KeyboardCode::LeftMeta => evdev::KeyCode::KEY_LEFTMETA,
+        KeyboardCode::RightMeta => evdev::KeyCode::KEY_RIGHTMETA,
+        KeyboardCode::Compose => evdev::KeyCode::KEY_COMPOSE,
+        KeyboardCode::Stop => evdev::KeyCode::KEY_STOP,
+        KeyboardCode::Again => evdev::KeyCode::KEY_AGAIN,
+        KeyboardCode::Props => evdev::KeyCode::KEY_PROPS,
+        KeyboardCode::Undo => evdev::KeyCode::KEY_UNDO,
+        KeyboardCode::Front => evdev::KeyCode::KEY_FRONT,
+        KeyboardCode::Copy => evdev::KeyCode::KEY_COPY,
+        KeyboardCode::Open => evdev::KeyCode::KEY_OPEN,
+        KeyboardCode::Paste => evdev::KeyCode::KEY_PASTE,
+        KeyboardCode::Find => evdev::KeyCode::KEY_FIND,
+        KeyboardCode::Cut => evdev::KeyCode::KEY_CUT,
+        KeyboardCode::Help => evdev::KeyCode::KEY_HELP,
+        KeyboardCode::Menu => evdev::KeyCode::KEY_MENU,
+        KeyboardCode::Calc => evdev::KeyCode::KEY_CALC,
+        KeyboardCode::Setup => evdev::KeyCode::KEY_SETUP,
+        KeyboardCode::Sleep => evdev::KeyCode::KEY_SLEEP,
+        KeyboardCode::WakeUp => evdev::KeyCode::KEY_WAKEUP,
+        KeyboardCode::File => evdev::KeyCode::KEY_FILE,
+        KeyboardCode::SendFile => evdev::KeyCode::KEY_SENDFILE,
+        KeyboardCode::DeleteFile => evdev::KeyCode::KEY_DELETEFILE,
+        KeyboardCode::Xfer => evdev::KeyCode::KEY_XFER,
+        KeyboardCode::Prog1 => evdev::KeyCode::KEY_PROG1,
+        KeyboardCode::Prog2 => evdev::KeyCode::KEY_PROG2,
+        KeyboardCode::Www => evdev::KeyCode::KEY_WWW,
+        KeyboardCode::Msdos => evdev::KeyCode::KEY_MSDOS,
+        KeyboardCode::Coffee => evdev::KeyCode::KEY_COFFEE,
+        KeyboardCode::Direction => evdev::KeyCode::KEY_DIRECTION,
+        KeyboardCode::RotateDisplay => evdev::KeyCode::KEY_DIRECTION,
+        KeyboardCode::CycleWindows => evdev::KeyCode::KEY_CYCLEWINDOWS,
+        KeyboardCode::Mail => evdev::KeyCode::KEY_MAIL,
+        KeyboardCode::Bookmarks => evdev::KeyCode::KEY_BOOKMARKS,
+        KeyboardCode::Computer => evdev::KeyCode::KEY_COMPUTER,
+        KeyboardCode::Back => evdev::KeyCode::KEY_BACK,
+        KeyboardCode::Forward => evdev::KeyCode::KEY_FORWARD,
+        KeyboardCode::CloseCd => evdev::KeyCode::KEY_CLOSECD,
+        KeyboardCode::EjectCd => evdev::KeyCode::KEY_EJECTCD,
+        KeyboardCode::EjectCloseCd => evdev::KeyCode::KEY_EJECTCLOSECD,
+        KeyboardCode::NextSong => evdev::KeyCode::KEY_NEXTSONG,
+        KeyboardCode::PlayPause => evdev::KeyCode::KEY_PLAYPAUSE,
+        KeyboardCode::PreviousSong => evdev::KeyCode::KEY_PREVIOUSSONG,
+        KeyboardCode::StopCd => evdev::KeyCode::KEY_STOPCD,
+        KeyboardCode::Record => evdev::KeyCode::KEY_RECORD,
+        KeyboardCode::Rewind => evdev::KeyCode::KEY_REWIND,
+        KeyboardCode::Phone => evdev::KeyCode::KEY_PHONE,
+        KeyboardCode::Iso => evdev::KeyCode::KEY_ISO,
+        KeyboardCode::Config => evdev::KeyCode::KEY_CONFIG,
+        KeyboardCode::HomePage => evdev::KeyCode::KEY_HOMEPAGE,
+        KeyboardCode::Refresh => evdev::KeyCode::KEY_REFRESH,
+        KeyboardCode::Exit => evdev::KeyCode::KEY_EXIT,
+        KeyboardCode::Move => evdev::KeyCode::KEY_MOVE,
+        KeyboardCode::Edit => evdev::KeyCode::KEY_EDIT,
+        KeyboardCode::ScrollUp => evdev::KeyCode::KEY_SCROLLUP,
+        KeyboardCode::ScrollDown => evdev::KeyCode::KEY_SCROLLDOWN,
+        KeyboardCode::KpLeftParen => evdev::KeyCode::KEY_KPLEFTPAREN,
+        KeyboardCode::KpRightParen => evdev::KeyCode::KEY_KPRIGHTPAREN,
+        KeyboardCode::New => evdev::KeyCode::KEY_NEW,
+        KeyboardCode::Redo => evdev::KeyCode::KEY_REDO,
+        KeyboardCode::F13 => evdev::KeyCode::KEY_F13,
+        KeyboardCode::F14 => evdev::KeyCode::KEY_F14,
+        KeyboardCode::F15 => evdev::KeyCode::KEY_F15,
+        KeyboardCode::F16 => evdev::KeyCode::KEY_F16,
+        KeyboardCode::F17 => evdev::KeyCode::KEY_F17,
+        KeyboardCode::F18 => evdev::KeyCode::KEY_F18,
+        KeyboardCode::F19 => evdev::KeyCode::KEY_F19,
+        KeyboardCode::F20 => evdev::KeyCode::KEY_F20,
+        KeyboardCode::F21 => evdev::KeyCode::KEY_F21,
+        KeyboardCode::F22 => evdev::KeyCode::KEY_F22,
+        KeyboardCode::F23 => evdev::KeyCode::KEY_F23,
+        KeyboardCode::F24 => evdev::KeyCode::KEY_F24,
+        KeyboardCode::PlayCd => evdev::KeyCode::KEY_PLAYCD,
+        KeyboardCode::PauseCd => evdev::KeyCode::KEY_PAUSECD,
+        KeyboardCode::Prog3 => evdev::KeyCode::KEY_PROG3,
+        KeyboardCode::Prog4 => evdev::KeyCode::KEY_PROG4,
+        KeyboardCode::Dashboard => evdev::KeyCode::KEY_DASHBOARD,
+        KeyboardCode::Suspend => evdev::KeyCode::KEY_SUSPEND,
+        KeyboardCode::Close => evdev::KeyCode::KEY_CLOSE,
+        KeyboardCode::Play => evdev::KeyCode::KEY_PLAY,
+        KeyboardCode::FastForward => evdev::KeyCode::KEY_FASTFORWARD,
+        KeyboardCode::BassBoost => evdev::KeyCode::KEY_BASSBOOST,
+        KeyboardCode::Print => evdev::KeyCode::KEY_PRINT,
+        KeyboardCode::Hp => evdev::KeyCode::KEY_HP,
+        KeyboardCode::Camera => evdev::KeyCode::KEY_CAMERA,
+        KeyboardCode::Sound => evdev::KeyCode::KEY_SOUND,
+        KeyboardCode::Question => evdev::KeyCode::KEY_QUESTION,
+        KeyboardCode::Email => evdev::KeyCode::KEY_EMAIL,
+        KeyboardCode::Chat => evdev::KeyCode::KEY_CHAT,
+        KeyboardCode::Search => evdev::KeyCode::KEY_SEARCH,
+        KeyboardCode::Connect => evdev::KeyCode::KEY_CONNECT,
+        KeyboardCode::Finance => evdev::KeyCode::KEY_FINANCE,
+        KeyboardCode::Sport => evdev::KeyCode::KEY_SPORT,
+        KeyboardCode::Shop => evdev::KeyCode::KEY_SHOP,
+        KeyboardCode::AlterErase => evdev::KeyCode::KEY_ALTERASE,
+        KeyboardCode::Cancel => evdev::KeyCode::KEY_CANCEL,
+        KeyboardCode::BrightnessDown => evdev::KeyCode::KEY_BRIGHTNESSDOWN,
+        KeyboardCode::BrightnessUp => evdev::KeyCode::KEY_BRIGHTNESSUP,
+        KeyboardCode::Media => evdev::KeyCode::KEY_MEDIA,
+        KeyboardCode::SwitchVideoMode => evdev::KeyCode::KEY_SWITCHVIDEOMODE,
+        KeyboardCode::KbdIllumToggle => evdev::KeyCode::KEY_KBDILLUMTOGGLE,
+        KeyboardCode::KbdIllumDown => evdev::KeyCode::KEY_KBDILLUMDOWN,
+        KeyboardCode::KbdIllumUp => evdev::KeyCode::KEY_KBDILLUMUP,
+        KeyboardCode::Send => evdev::KeyCode::KEY_SEND,
+        KeyboardCode::Reply => evdev::KeyCode::KEY_REPLY,
+        KeyboardCode::ForwardMail => evdev::KeyCode::KEY_FORWARDMAIL,
+        KeyboardCode::Save => evdev::KeyCode::KEY_SAVE,
+        KeyboardCode::Documents => evdev::KeyCode::KEY_DOCUMENTS,
+        KeyboardCode::Battery => evdev::KeyCode::KEY_BATTERY,
+        KeyboardCode::Bluetooth => evdev::KeyCode::KEY_BLUETOOTH,
+        KeyboardCode::Wlan => evdev::KeyCode::KEY_WLAN,
+        KeyboardCode::Uwb => evdev::KeyCode::KEY_UWB,
+        KeyboardCode::Unknown => evdev::KeyCode::KEY_RESERVED,
+    }
+}
+
+fn absolute_axis_to_axis_code(axis: evdev::AbsoluteAxisCode) -> AxisCode {
     match axis {
         evdev::AbsoluteAxisCode::ABS_X => AxisCode::LeftX,
         evdev::AbsoluteAxisCode::ABS_Y => AxisCode::LeftY,
@@ -215,16 +441,36 @@ mod tests {
     }
 
     #[test]
+    fn test_all_keyboard_code_to_evdev_mappings() {
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::Escape), evdev::KeyCode::KEY_ESC);
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::A), evdev::KeyCode::KEY_A);
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::Num1), evdev::KeyCode::KEY_1);
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::Enter), evdev::KeyCode::KEY_ENTER);
+        assert_eq!(
+            keyboard_code_to_evdev_key(KeyboardCode::LeftControl),
+            evdev::KeyCode::KEY_LEFTCTRL
+        );
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::F1), evdev::KeyCode::KEY_F1);
+        assert_eq!(keyboard_code_to_evdev_key(KeyboardCode::Unknown), evdev::KeyCode::KEY_RESERVED);
+    }
+
+    #[test]
     fn test_all_axis_code_mappings() {
         // Test all axis mappings
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_X), AxisCode::LeftX);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_Y), AxisCode::LeftY);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RX), AxisCode::RightX);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RY), AxisCode::RightY);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_Z), AxisCode::LeftTrigger);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RZ), AxisCode::RightTrigger);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_HAT0X), AxisCode::DPadX);
-        assert_eq!(axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_HAT0Y), AxisCode::DPadY);
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_X), AxisCode::LeftX);
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_Y), AxisCode::LeftY);
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RX), AxisCode::RightX);
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RY), AxisCode::RightY);
+        assert_eq!(
+            absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_Z),
+            AxisCode::LeftTrigger
+        );
+        assert_eq!(
+            absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_RZ),
+            AxisCode::RightTrigger
+        );
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_HAT0X), AxisCode::DPadX);
+        assert_eq!(absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_HAT0Y), AxisCode::DPadY);
     }
 
     #[test]
@@ -233,8 +479,10 @@ mod tests {
         // We can't easily create unknown enum variants, so we'll test
         // that our mapping functions are total (cover all expected cases)
         // This test passes as long as no panics occur for any input
-        let _result1 = key_to_button_code(evdev::KeyCode::KEY_A);
-        let _result2 = axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_X);
-        // The functions should return ButtonCode::Unknown or AxisCode::Unknown for unmapped codes
+
+        // KEY_A is a valid keyboard key but an unknown gamepad button
+        assert_eq!(key_to_button_code(evdev::KeyCode::KEY_A), ButtonCode::Unknown);
+
+        let _result2 = absolute_axis_to_axis_code(evdev::AbsoluteAxisCode::ABS_X);
     }
 }

@@ -9,6 +9,7 @@ pub use database::{get_known_vendor_database, identify_gamepad};
 pub use info::GamepadInfo;
 pub use types::{GamepadCapability, GamepadType, capabilities_to_strings};
 
+#[cfg_attr(test, mockall::automock)]
 pub trait Gamepad {
     /// Get detailed info about the gamepad
     fn get_info(&self) -> &GamepadInfo;

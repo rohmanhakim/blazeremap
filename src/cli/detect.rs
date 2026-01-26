@@ -18,7 +18,7 @@ pub fn handle(matches: &ArgMatches) -> anyhow::Result<()> {
 
     println!("Detecting gamepads...\n");
 
-    let device_manager = platform::new_device_manager();
+    let device_manager = platform::new_input_manager();
     let result = device_manager.list_gamepads()?;
 
     display_results(&result, verbose);

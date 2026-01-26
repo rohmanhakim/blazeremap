@@ -1,10 +1,12 @@
-// Task 6: Virtual Keyboard Module (domain abstraction separation)
+// Virtual Keyboard Module
+
+use crate::{
+    event::KeyboardCode, output::keyboard::VirtualKeyboard,
+    platform::linux::converter::keyboard_code_to_evdev_key,
+};
 use anyhow::{Context, Result};
 use evdev::{AttributeSet, EventType, InputEvent as EvdevEvent, KeyCode, uinput::VirtualDevice};
 use std::path::PathBuf;
-
-// Domain trait import
-use crate::output::keyboard::VirtualKeyboard;
 
 /// Concrete virtual keyboard backed by /dev/uinput
 pub struct LinuxVirtualKeyboard {
@@ -71,16 +73,16 @@ impl Drop for LinuxVirtualKeyboard {
 
 // Implement the domain trait for this concrete type
 impl VirtualKeyboard for LinuxVirtualKeyboard {
-    fn press_key(&mut self, code: u16) -> Result<()> {
-        self.press_key_code(code)
+    fn press_key(&mut self, code: KeyboardCode) -> Result<()> {
+        self.press_key_code(keyboard_code_to_evdev_key(code).code())
     }
 
-    fn release_key(&mut self, code: u16) -> Result<()> {
-        self.release_key_code(code)
+    fn release_key(&mut self, code: KeyboardCode) -> Result<()> {
+        self.release_key_code(keyboard_code_to_evdev_key(code).code())
     }
 
-    fn tap_key(&mut self, code: u16) -> Result<()> {
-        self.tap_key_code(code)
+    fn tap_key(&mut self, code: KeyboardCode) -> Result<()> {
+        self.tap_key_code(keyboard_code_to_evdev_key(code).code())
     }
     fn sys_path(&mut self) -> Result<std::path::PathBuf> {
         self.sys_path()

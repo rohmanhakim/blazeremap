@@ -1,6 +1,7 @@
 // CLI module - command definitions and handling
 mod detect;
 mod read;
+mod run;
 mod test_keyboard;
 
 use clap::Command;
@@ -15,6 +16,7 @@ pub fn build_cli() -> Command {
         .arg_required_else_help(true)
         .subcommand(detect::command())
         .subcommand(read::command())
+        .subcommand(run::command())
         .subcommand(test_keyboard::command())
 }
 
@@ -25,6 +27,7 @@ pub fn execute() -> anyhow::Result<()> {
     match matches.subcommand() {
         Some(("detect", sub_matches)) => detect::handle(sub_matches),
         Some(("read", sub_matches)) => read::handle(sub_matches),
+        Some(("run", sub_matches)) => run::handle(sub_matches),
         Some(("test-keyboard", sub_matches)) => test_keyboard::handle(sub_matches),
         _ => unreachable!("Subcommand required"),
     }
