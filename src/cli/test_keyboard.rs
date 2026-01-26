@@ -1,9 +1,8 @@
+use crate::event::KeyboardCode;
 use crate::output::keyboard::VirtualKeyboard;
-// src/cli/test_keyboard.rs
 use crate::platform::linux::LinuxVirtualKeyboard;
 use anyhow::Result;
 use clap::Command;
-use evdev::KeyCode;
 use std::thread;
 use std::time::Duration;
 
@@ -32,7 +31,7 @@ pub fn handle(_matches: &clap::ArgMatches) -> Result<()> {
 
     // Emit space key in a loop
     for i in 1.. {
-        keyboard.tap_key(KeyCode::KEY_SPACE.code())?;
+        keyboard.tap_key(KeyboardCode::Space)?;
         println!("[{}] Space key tapped", i);
         thread::sleep(Duration::from_secs(1));
     }

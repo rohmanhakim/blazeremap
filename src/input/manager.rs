@@ -1,12 +1,16 @@
 // Input device management types and traits
 
-use super::gamepad::GamepadInfo;
+use super::gamepad::{Gamepad, GamepadInfo};
 use thiserror::Error;
 
 /// InputManager trait - handles input device discovery and creation
+#[cfg_attr(test, mockall::automock)]
 pub trait InputManager {
     /// List all connected gamepads
     fn list_gamepads(&self) -> anyhow::Result<InputDetectionResult>;
+
+    /// Open a specific gamepad by path
+    fn open_gamepad(&self, path: &str) -> anyhow::Result<Box<dyn Gamepad>>;
 }
 
 /// Results of gamepad detection

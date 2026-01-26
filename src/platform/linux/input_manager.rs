@@ -1,7 +1,7 @@
 // Linux device manager implementation
 use super::errors::classify_error;
-use super::gamepad::{extract_gamepad_info, is_gamepad};
-use crate::input::{InputDetectionResult, InputDeviceError, InputManager};
+use super::gamepad::{LinuxGamepad, extract_gamepad_info, is_gamepad};
+use crate::input::{InputDetectionResult, InputDeviceError, InputManager, gamepad::Gamepad};
 
 pub struct LinuxInputManager {
     // Fields can be added later if needed
@@ -50,9 +50,18 @@ impl InputManager for LinuxInputManager {
             }
         }
 
-        println!("Found {} gamepads ({} errors)", result.gamepad_info.len(), result.errors.len());
+        tracing::info!(
+            "Found {} gamepads ({} errors)",
+            result.gamepad_info.len(),
+            result.errors.len()
+        );
 
         Ok(result)
+    }
+
+    fn open_gamepad(&self, path: &str) -> anyhow::Result<Box<dyn Gamepad>> {
+        let gamepad = LinuxGamepad::open(path)?;
+        Ok(Box::new(gamepad))
     }
 }
 

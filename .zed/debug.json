@@ -39,4 +39,16 @@
     "request": "launch",
     "sourceLanguages": ["rust"],
   },
+  {
+    "label": "Debug run",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build"],
+    },
+    "program": "target/debug/blazeremap",
+    "args": ["run"],
+    "request": "launch",
+    "sourceLanguages": ["rust"],
+  },
 ]

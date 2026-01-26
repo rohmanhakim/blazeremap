@@ -1,8 +1,7 @@
-// tests/virtual_keyboard_integration.rs
-
+use blazeremap::event::KeyboardCode;
 use blazeremap::output::keyboard::VirtualKeyboard;
 use blazeremap::platform::linux::LinuxVirtualKeyboard;
-use evdev::{Device, KeyCode};
+use evdev::Device;
 use std::thread;
 use std::time::Duration;
 
@@ -50,13 +49,13 @@ fn test_virtual_keyboard_key_press_release() {
         .expect("Failed to create virtual keyboard");
 
     // Test press
-    let result = keyboard.press_key(KeyCode::KEY_A.code());
+    let result = keyboard.press_key(blazeremap::event::KeyboardCode::A);
     assert!(result.is_ok(), "Failed to press key: {:?}", result.err());
 
     thread::sleep(Duration::from_millis(50));
 
     // Test release
-    let result = keyboard.release_key(KeyCode::KEY_A.code());
+    let result = keyboard.release_key(blazeremap::event::KeyboardCode::A);
     assert!(result.is_ok(), "Failed to release key: {:?}", result.err());
 
     println!("✓ Key press/release successful");
@@ -69,7 +68,7 @@ fn test_virtual_keyboard_tap() {
         .expect("Failed to create virtual keyboard");
 
     // Test tap (press + release)
-    let result = keyboard.tap_key(KeyCode::KEY_SPACE.code());
+    let result = keyboard.tap_key(blazeremap::event::KeyboardCode::Space);
     assert!(result.is_ok(), "Failed to tap key: {:?}", result.err());
 
     println!("✓ Key tap successful");
@@ -81,10 +80,10 @@ fn test_virtual_keyboard_multiple_keys() {
     let mut keyboard = LinuxVirtualKeyboard::new("BlazeRemap Multi Key Test")
         .expect("Failed to create virtual keyboard");
 
-    let keys = [KeyCode::KEY_A, KeyCode::KEY_B, KeyCode::KEY_C, KeyCode::KEY_SPACE];
+    let keys = [KeyboardCode::A, KeyboardCode::B, KeyboardCode::C, KeyboardCode::Space];
 
     for key in &keys {
-        let result = keyboard.tap_key(key.code());
+        let result = keyboard.tap_key(key.clone());
         assert!(result.is_ok(), "Failed to tap {:?}: {:?}", key, result.err());
         thread::sleep(Duration::from_millis(10));
     }
@@ -143,7 +142,7 @@ fn test_virtual_keyboard_rapid_events() {
 
     // Simulate rapid button mashing (100 taps)
     for _ in 0..100 {
-        keyboard.tap_key(KeyCode::KEY_SPACE.code()).expect("Failed during rapid tap test");
+        keyboard.tap_key(KeyboardCode::Space).expect("Failed during rapid tap test");
     }
 
     println!("✓ Rapid event test successful (100 taps)");
