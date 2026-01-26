@@ -24,7 +24,6 @@ const ELITE_PADDLE_COUNT: usize = 4;
 /// real gamepads (e.g., Steam Virtual Gamepad, remote desktop devices).
 /// This provides a final safety check based on device naming.
 ///
-/// Mirrors: isExcludedByName() from Go
 fn is_excluded_by_name(name: &str) -> bool {
     let name_lower = name.to_lowercase();
 

@@ -31,6 +31,4 @@
 *.deb
 *.rpm
 *.tar.gz
-
-docs/
-.rules
+# .rules
