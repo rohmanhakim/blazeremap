@@ -77,25 +77,29 @@ impl MappingEngine {
         let new_direction = Self::value_to_direction(new_value);
 
         // Release old direction if it changed
-        if old_direction != new_direction
-            && let Some(old_dir) = old_direction
-            && let Some(&target_key) = self.axis_rules.get(&(code, old_dir))
-        {
-            events.push(OutputEvent::Keyboard {
-                code: target_key,
-                event_type: KeyboardEventType::Release,
-            });
+        #[allow(clippy::collapsible_if)]
+        if let Some(old_dir) = old_direction {
+            if old_direction != new_direction {
+                if let Some(&target_key) = self.axis_rules.get(&(code, old_dir)) {
+                    events.push(OutputEvent::Keyboard {
+                        code: target_key,
+                        event_type: KeyboardEventType::Release,
+                    });
+                }
+            }
         }
 
         // Press new direction if: active
-        if old_direction != new_direction
-            && let Some(new_dir) = new_direction
-            && let Some(&target_key) = self.axis_rules.get(&(code, new_dir))
-        {
-            events.push(OutputEvent::Keyboard {
-                code: target_key,
-                event_type: KeyboardEventType::Press,
-            });
+        #[allow(clippy::collapsible_if)]
+        if let Some(new_dir) = new_direction {
+            if old_direction != new_direction {
+                if let Some(&target_key) = self.axis_rules.get(&(code, new_dir)) {
+                    events.push(OutputEvent::Keyboard {
+                        code: target_key,
+                        event_type: KeyboardEventType::Press,
+                    });
+                }
+            }
         }
 
         Ok(events)

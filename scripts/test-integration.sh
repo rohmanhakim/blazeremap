@@ -28,7 +28,9 @@ echo ""
 
 # Run tests
 echo "Running integration tests..."
-cargo test --test virtual_keyboard_integration_test -- --ignored --nocapture
+cargo test --test cli_test -- --nocapture
+cargo test --test types_test -- --nocapture
+cargo test --test virtual_keyboard_test -- --ignored --nocapture
 
 echo ""
 echo "================================================"

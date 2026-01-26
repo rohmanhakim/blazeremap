@@ -221,8 +221,8 @@ impl LinuxGamepad {
 }
 
 impl Gamepad for LinuxGamepad {
-    fn get_info(&self) -> &GamepadInfo {
-        &self.info
+    fn get_info(&self) -> GamepadInfo {
+        self.info.clone()
     }
 
     fn read_event(&mut self) -> anyhow::Result<Option<InputEvent>> {

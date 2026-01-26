@@ -21,7 +21,8 @@ fi
 echo "Running hardware tests..."
 echo ""
 
-cargo test --test hardware_test -- --ignored --nocapture
+cargo test --test detect_hardware_test -- --ignored --nocapture
+cargo test --test latency_hardware_test -- --ignored --nocapture
 
 echo ""
 echo "✅ Hardware tests complete!"

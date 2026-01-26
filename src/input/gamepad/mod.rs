@@ -12,7 +12,7 @@ pub use types::{GamepadCapability, GamepadType, capabilities_to_strings};
 #[cfg_attr(test, mockall::automock)]
 pub trait Gamepad {
     /// Get detailed info about the gamepad
-    fn get_info(&self) -> &GamepadInfo;
+    fn get_info(&self) -> GamepadInfo;
 
     /// Read the next input event (BLOCKING)
     /// Returns None when device is disconnected
