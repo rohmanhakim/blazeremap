@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OutputEvent {
     Keyboard {
@@ -27,7 +29,7 @@ pub enum KeyboardEventType {
 
 /// Platform-agnostic keyboard key codes.
 /// These are derived from the `evdev::KeyCode` enum, focusing on standard keyboard keys.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum KeyboardCode {
     Reserved,
     Escape,
@@ -479,5 +481,333 @@ impl Display for KeyboardCode {
             Self::Uwb => write!(f, "UWB"),
             Self::Unknown => write!(f, "Unknown"),
         }
+    }
+}
+
+impl From<&str> for KeyboardCode {
+    fn from(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "reserved" => KeyboardCode::Reserved,
+            "escape" => KeyboardCode::Escape,
+            "1" => KeyboardCode::Num1,
+            "2" => KeyboardCode::Num2,
+            "3" => KeyboardCode::Num3,
+            "4" => KeyboardCode::Num4,
+            "5" => KeyboardCode::Num5,
+            "6" => KeyboardCode::Num6,
+            "7" => KeyboardCode::Num7,
+            "8" => KeyboardCode::Num8,
+            "9" => KeyboardCode::Num9,
+            "0" => KeyboardCode::Num0,
+            "-" => KeyboardCode::Minus,
+            "=" => KeyboardCode::Equal,
+            "backspace" => KeyboardCode::Backspace,
+            "tab" => KeyboardCode::Tab,
+            "q" => KeyboardCode::Q,
+            "w" => KeyboardCode::W,
+            "e" => KeyboardCode::E,
+            "r" => KeyboardCode::R,
+            "t" => KeyboardCode::T,
+            "y" => KeyboardCode::Y,
+            "u" => KeyboardCode::U,
+            "i" => KeyboardCode::I,
+            "o" => KeyboardCode::O,
+            "p" => KeyboardCode::P,
+            "[" => KeyboardCode::LeftBrace,
+            "]" => KeyboardCode::RightBrace,
+            "enter" => KeyboardCode::Enter,
+            "left control" => KeyboardCode::LeftControl,
+            "a" => KeyboardCode::A,
+            "s" => KeyboardCode::S,
+            "d" => KeyboardCode::D,
+            "f" => KeyboardCode::F,
+            "g" => KeyboardCode::G,
+            "h" => KeyboardCode::H,
+            "j" => KeyboardCode::J,
+            "k" => KeyboardCode::K,
+            "l" => KeyboardCode::L,
+            ";" => KeyboardCode::Semicolon,
+            "'" => KeyboardCode::Apostrophe,
+            "`" => KeyboardCode::Grave,
+            "left shift" => KeyboardCode::LeftShift,
+            "\\" => KeyboardCode::Backslash,
+            "z" => KeyboardCode::Z,
+            "x" => KeyboardCode::X,
+            "c" => KeyboardCode::C,
+            "v" => KeyboardCode::V,
+            "b" => KeyboardCode::B,
+            "n" => KeyboardCode::N,
+            "m" => KeyboardCode::M,
+            "," => KeyboardCode::Comma,
+            "." => KeyboardCode::Dot,
+            "/" => KeyboardCode::Slash,
+            "right shift" => KeyboardCode::RightShift,
+            "kp *" => KeyboardCode::KpAsterisk,
+            "left alt" => KeyboardCode::LeftAlt,
+            "space" => KeyboardCode::Space,
+            "caps lock" => KeyboardCode::CapsLock,
+            "f1" => KeyboardCode::F1,
+            "f2" => KeyboardCode::F2,
+            "f3" => KeyboardCode::F3,
+            "f4" => KeyboardCode::F4,
+            "f5" => KeyboardCode::F5,
+            "f6" => KeyboardCode::F6,
+            "f7" => KeyboardCode::F7,
+            "f8" => KeyboardCode::F8,
+            "f9" => KeyboardCode::F9,
+            "f10" => KeyboardCode::F10,
+            "num lock" => KeyboardCode::NumLock,
+            "scroll lock" => KeyboardCode::ScrollLock,
+            "kp 7" => KeyboardCode::Kp7,
+            "kp 8" => KeyboardCode::Kp8,
+            "kp 9" => KeyboardCode::Kp9,
+            "kp -" => KeyboardCode::KpMinus,
+            "kp 4" => KeyboardCode::Kp4,
+            "kp 5" => KeyboardCode::Kp5,
+            "kp 6" => KeyboardCode::Kp6,
+            "kp +" => KeyboardCode::KpPlus,
+            "kp 1" => KeyboardCode::Kp1,
+            "kp 2" => KeyboardCode::Kp2,
+            "kp 3" => KeyboardCode::Kp3,
+            "kp 0" => KeyboardCode::Kp0,
+            "kp ." => KeyboardCode::KpDot,
+            "kp enter" => KeyboardCode::KpEnter,
+            "right control" => KeyboardCode::RightControl,
+            "kp /" => KeyboardCode::KpSlash,
+            "sysrq" => KeyboardCode::SysRq,
+            "right alt" => KeyboardCode::RightAlt,
+            "line feed" => KeyboardCode::LineFeed,
+            "home" => KeyboardCode::Home,
+            "up" => KeyboardCode::Up,
+            "page up" => KeyboardCode::PageUp,
+            "left" => KeyboardCode::Left,
+            "right" => KeyboardCode::Right,
+            "end" => KeyboardCode::End,
+            "down" => KeyboardCode::Down,
+            "page down" => KeyboardCode::PageDown,
+            "insert" => KeyboardCode::Insert,
+            "delete" => KeyboardCode::Delete,
+            "macro" => KeyboardCode::Macro,
+            "mute" => KeyboardCode::Mute,
+            "volume down" => KeyboardCode::VolumeDown,
+            "volume up" => KeyboardCode::VolumeUp,
+            "power" => KeyboardCode::Power,
+            "kp =" => KeyboardCode::KpEqual,
+            "kp +/-" => KeyboardCode::KpPlusMinus,
+            "pause" => KeyboardCode::Pause,
+            "scale" => KeyboardCode::Scale,
+            "kp ," => KeyboardCode::KpComma,
+            "left meta" => KeyboardCode::LeftMeta,
+            "right meta" => KeyboardCode::RightMeta,
+            "compose" => KeyboardCode::Compose,
+            "stop" => KeyboardCode::Stop,
+            "again" => KeyboardCode::Again,
+            "properties" => KeyboardCode::Props,
+            "undo" => KeyboardCode::Undo,
+            "front" => KeyboardCode::Front,
+            "copy" => KeyboardCode::Copy,
+            "open" => KeyboardCode::Open,
+            "paste" => KeyboardCode::Paste,
+            "find" => KeyboardCode::Find,
+            "cut" => KeyboardCode::Cut,
+            "help" => KeyboardCode::Help,
+            "menu" => KeyboardCode::Menu,
+            "calculator" => KeyboardCode::Calc,
+            "setup" => KeyboardCode::Setup,
+            "sleep" => KeyboardCode::Sleep,
+            "wake up" => KeyboardCode::WakeUp,
+            "file" => KeyboardCode::File,
+            "send file" => KeyboardCode::SendFile,
+            "delete file" => KeyboardCode::DeleteFile,
+            "transfer" => KeyboardCode::Xfer,
+            "program 1" => KeyboardCode::Prog1,
+            "program 2" => KeyboardCode::Prog2,
+            "www" => KeyboardCode::Www,
+            "ms dos" => KeyboardCode::Msdos,
+            "coffee" => KeyboardCode::Coffee,
+            "direction" => KeyboardCode::Direction,
+            "rotate display" => KeyboardCode::RotateDisplay,
+            "cycle windows" => KeyboardCode::CycleWindows,
+            "mail" => KeyboardCode::Mail,
+            "bookmarks" => KeyboardCode::Bookmarks,
+            "computer" => KeyboardCode::Computer,
+            "back" => KeyboardCode::Back,
+            "forward" => KeyboardCode::Forward,
+            "close cd" => KeyboardCode::CloseCd,
+            "eject cd" => KeyboardCode::EjectCd,
+            "eject/close cd" => KeyboardCode::EjectCloseCd,
+            "next song" => KeyboardCode::NextSong,
+            "play/pause" => KeyboardCode::PlayPause,
+            "previous song" => KeyboardCode::PreviousSong,
+            "stop cd" => KeyboardCode::StopCd,
+            "record" => KeyboardCode::Record,
+            "rewind" => KeyboardCode::Rewind,
+            "phone" => KeyboardCode::Phone,
+            "iso" => KeyboardCode::Iso,
+            "configuration" => KeyboardCode::Config,
+            "home page" => KeyboardCode::HomePage,
+            "refresh" => KeyboardCode::Refresh,
+            "exit" => KeyboardCode::Exit,
+            "move" => KeyboardCode::Move,
+            "edit" => KeyboardCode::Edit,
+            "scroll up" => KeyboardCode::ScrollUp,
+            "scroll down" => KeyboardCode::ScrollDown,
+            "kp (" => KeyboardCode::KpLeftParen,
+            "kp )" => KeyboardCode::KpRightParen,
+            "new" => KeyboardCode::New,
+            "redo" => KeyboardCode::Redo,
+            "f13" => KeyboardCode::F13,
+            "f14" => KeyboardCode::F14,
+            "f15" => KeyboardCode::F15,
+            "f16" => KeyboardCode::F16,
+            "f17" => KeyboardCode::F17,
+            "f18" => KeyboardCode::F18,
+            "f19" => KeyboardCode::F19,
+            "f20" => KeyboardCode::F20,
+            "f21" => KeyboardCode::F21,
+            "f22" => KeyboardCode::F22,
+            "f23" => KeyboardCode::F23,
+            "f24" => KeyboardCode::F24,
+            "play cd" => KeyboardCode::PlayCd,
+            "pause cd" => KeyboardCode::PauseCd,
+            "program 3" => KeyboardCode::Prog3,
+            "program 4" => KeyboardCode::Prog4,
+            "dashboard" => KeyboardCode::Dashboard,
+            "suspend" => KeyboardCode::Suspend,
+            "close" => KeyboardCode::Close,
+            "play" => KeyboardCode::Play,
+            "fast forward" => KeyboardCode::FastForward,
+            "bass boost" => KeyboardCode::BassBoost,
+            "print" => KeyboardCode::Print,
+            "hp" => KeyboardCode::Hp,
+            "camera" => KeyboardCode::Camera,
+            "sound" => KeyboardCode::Sound,
+            "question" => KeyboardCode::Question,
+            "email" => KeyboardCode::Email,
+            "chat" => KeyboardCode::Chat,
+            "search" => KeyboardCode::Search,
+            "connect" => KeyboardCode::Connect,
+            "finance" => KeyboardCode::Finance,
+            "sport" => KeyboardCode::Sport,
+            "shop" => KeyboardCode::Shop,
+            "alternate erase" => KeyboardCode::AlterErase,
+            "cancel" => KeyboardCode::Cancel,
+            "brightness down" => KeyboardCode::BrightnessDown,
+            "brightness up" => KeyboardCode::BrightnessUp,
+            "media" => KeyboardCode::Media,
+            "switch video mode" => KeyboardCode::SwitchVideoMode,
+            "keyboard illumination toggle" => KeyboardCode::KbdIllumToggle,
+            "keyboard illumination down" => KeyboardCode::KbdIllumDown,
+            "keyboard illumination up" => KeyboardCode::KbdIllumUp,
+            "send" => KeyboardCode::Send,
+            "reply" => KeyboardCode::Reply,
+            "forward mail" => KeyboardCode::ForwardMail,
+            "save" => KeyboardCode::Save,
+            "documents" => KeyboardCode::Documents,
+            "battery" => KeyboardCode::Battery,
+            "bluetooth" => KeyboardCode::Bluetooth,
+            "wlan" => KeyboardCode::Wlan,
+            "uwb" => KeyboardCode::Uwb,
+            _ => KeyboardCode::Unknown,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::KeyboardCode;
+
+    #[test]
+    fn test_from_str_for_keyboard_code() {
+        // Test known cases (case-insensitive)
+        assert_eq!(KeyboardCode::from("reserved"), KeyboardCode::Reserved);
+        assert_eq!(KeyboardCode::from("escape"), KeyboardCode::Escape);
+        assert_eq!(KeyboardCode::from("Escape"), KeyboardCode::Escape);
+        assert_eq!(KeyboardCode::from("ESCAPE"), KeyboardCode::Escape);
+
+        assert_eq!(KeyboardCode::from("1"), KeyboardCode::Num1);
+        assert_eq!(KeyboardCode::from("0"), KeyboardCode::Num0);
+        assert_eq!(KeyboardCode::from("q"), KeyboardCode::Q);
+        assert_eq!(KeyboardCode::from("Z"), KeyboardCode::Z);
+
+        assert_eq!(KeyboardCode::from("-"), KeyboardCode::Minus);
+        assert_eq!(KeyboardCode::from("="), KeyboardCode::Equal);
+        assert_eq!(KeyboardCode::from("["), KeyboardCode::LeftBrace);
+        assert_eq!(KeyboardCode::from("]"), KeyboardCode::RightBrace);
+        assert_eq!(KeyboardCode::from("\\"), KeyboardCode::Backslash);
+        assert_eq!(KeyboardCode::from(";"), KeyboardCode::Semicolon);
+        assert_eq!(KeyboardCode::from("'"), KeyboardCode::Apostrophe);
+        assert_eq!(KeyboardCode::from("`"), KeyboardCode::Grave);
+        assert_eq!(KeyboardCode::from(","), KeyboardCode::Comma);
+        assert_eq!(KeyboardCode::from("."), KeyboardCode::Dot);
+        assert_eq!(KeyboardCode::from("/"), KeyboardCode::Slash);
+
+        assert_eq!(KeyboardCode::from("left control"), KeyboardCode::LeftControl);
+        assert_eq!(KeyboardCode::from("Left Control"), KeyboardCode::LeftControl);
+        assert_eq!(KeyboardCode::from("LEFT CONTROL"), KeyboardCode::LeftControl);
+
+        assert_eq!(KeyboardCode::from("left shift"), KeyboardCode::LeftShift);
+        assert_eq!(KeyboardCode::from("right shift"), KeyboardCode::RightShift);
+        assert_eq!(KeyboardCode::from("left alt"), KeyboardCode::LeftAlt);
+        assert_eq!(KeyboardCode::from("right alt"), KeyboardCode::RightAlt);
+        assert_eq!(KeyboardCode::from("space"), KeyboardCode::Space);
+        assert_eq!(KeyboardCode::from("caps lock"), KeyboardCode::CapsLock);
+        assert_eq!(KeyboardCode::from("enter"), KeyboardCode::Enter);
+        assert_eq!(KeyboardCode::from("backspace"), KeyboardCode::Backspace);
+        assert_eq!(KeyboardCode::from("tab"), KeyboardCode::Tab);
+
+        assert_eq!(KeyboardCode::from("f1"), KeyboardCode::F1);
+        assert_eq!(KeyboardCode::from("F10"), KeyboardCode::F10);
+        assert_eq!(KeyboardCode::from("f13"), KeyboardCode::F13);
+        assert_eq!(KeyboardCode::from("F24"), KeyboardCode::F24);
+
+        assert_eq!(KeyboardCode::from("kp *"), KeyboardCode::KpAsterisk);
+        assert_eq!(KeyboardCode::from("kp -"), KeyboardCode::KpMinus);
+        assert_eq!(KeyboardCode::from("kp +"), KeyboardCode::KpPlus);
+        assert_eq!(KeyboardCode::from("kp /"), KeyboardCode::KpSlash);
+        assert_eq!(KeyboardCode::from("kp ."), KeyboardCode::KpDot);
+        assert_eq!(KeyboardCode::from("kp 0"), KeyboardCode::Kp0);
+        assert_eq!(KeyboardCode::from("kp 7"), KeyboardCode::Kp7);
+        assert_eq!(KeyboardCode::from("kp enter"), KeyboardCode::KpEnter);
+        assert_eq!(KeyboardCode::from("kp ="), KeyboardCode::KpEqual);
+        assert_eq!(KeyboardCode::from("kp ("), KeyboardCode::KpLeftParen);
+        assert_eq!(KeyboardCode::from("kp )"), KeyboardCode::KpRightParen);
+
+        assert_eq!(KeyboardCode::from("home"), KeyboardCode::Home);
+        assert_eq!(KeyboardCode::from("up"), KeyboardCode::Up);
+        assert_eq!(KeyboardCode::from("page up"), KeyboardCode::PageUp);
+        assert_eq!(KeyboardCode::from("left"), KeyboardCode::Left);
+        assert_eq!(KeyboardCode::from("right"), KeyboardCode::Right);
+        assert_eq!(KeyboardCode::from("end"), KeyboardCode::End);
+        assert_eq!(KeyboardCode::from("down"), KeyboardCode::Down);
+        assert_eq!(KeyboardCode::from("page down"), KeyboardCode::PageDown);
+        assert_eq!(KeyboardCode::from("insert"), KeyboardCode::Insert);
+        assert_eq!(KeyboardCode::from("delete"), KeyboardCode::Delete);
+
+        assert_eq!(KeyboardCode::from("mute"), KeyboardCode::Mute);
+        assert_eq!(KeyboardCode::from("volume down"), KeyboardCode::VolumeDown);
+        assert_eq!(KeyboardCode::from("volume up"), KeyboardCode::VolumeUp);
+        assert_eq!(KeyboardCode::from("play/pause"), KeyboardCode::PlayPause);
+        assert_eq!(KeyboardCode::from("next song"), KeyboardCode::NextSong);
+        assert_eq!(KeyboardCode::from("previous song"), KeyboardCode::PreviousSong);
+
+        // Test multi-word keys
+        assert_eq!(KeyboardCode::from("scroll lock"), KeyboardCode::ScrollLock);
+        assert_eq!(KeyboardCode::from("home page"), KeyboardCode::HomePage);
+        assert_eq!(KeyboardCode::from("eject/close cd"), KeyboardCode::EjectCloseCd);
+        assert_eq!(
+            KeyboardCode::from("keyboard illumination toggle"),
+            KeyboardCode::KbdIllumToggle
+        );
+        assert_eq!(
+            KeyboardCode::from("Keyboard IllUMinaTion toGGle"),
+            KeyboardCode::KbdIllumToggle
+        );
+
+        // Test unknown case
+        assert_eq!(KeyboardCode::from("nonexistent"), KeyboardCode::Unknown);
+        assert_eq!(KeyboardCode::from("random string"), KeyboardCode::Unknown);
+        assert_eq!(KeyboardCode::from(""), KeyboardCode::Unknown); // Empty string
+        assert_eq!(KeyboardCode::from("unknown"), KeyboardCode::Unknown); // The explicit Unknown variant
     }
 }

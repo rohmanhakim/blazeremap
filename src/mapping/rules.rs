@@ -1,4 +1,9 @@
-use crate::event::{AxisCode, AxisDirection, ButtonCode, KeyboardCode};
+use thiserror::Error;
+
+use crate::{
+    event::{AxisCode, AxisDirection, ButtonCode, KeyboardCode},
+    mapping::Mapping,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MappingRule {
@@ -17,6 +22,34 @@ impl MappingRule {
         target: KeyboardCode,
     ) -> Self {
         Self::AxisDirectionToKey { source, direction, target }
+    }
+}
+
+#[derive(Error, Debug)]
+#[error("Invalid source direction for mapping")]
+pub struct InvalidSourceDirectionError;
+
+impl TryFrom<&Mapping> for MappingRule {
+    type Error = InvalidSourceDirectionError;
+    fn try_from(mapping: &Mapping) -> Result<Self, Self::Error> {
+        if mapping.source_direction.is_some() {
+            let direction = match mapping.source_direction.as_deref().unwrap_or_default() {
+                "Positive" => AxisDirection::Positive,
+                "Negative" => AxisDirection::Negative,
+                _ => return Err(InvalidSourceDirectionError),
+            };
+
+            Ok(MappingRule::AxisDirectionToKey {
+                source: AxisCode::from(mapping.source_name.as_str()),
+                direction,
+                target: KeyboardCode::from(mapping.target_name.as_str()),
+            })
+        } else {
+            Ok(MappingRule::ButtonToKey {
+                source: ButtonCode::from(mapping.source_name.as_str()),
+                target: KeyboardCode::from(mapping.target_name.as_str()),
+            })
+        }
     }
 }
 

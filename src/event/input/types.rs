@@ -37,6 +37,8 @@ use std::{
     time::Instant,
 };
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Clone, Copy)] // Copy for performance in event loops
 pub enum InputEvent {
     Button {
@@ -150,7 +152,7 @@ impl Display for InputEvent {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ButtonCode {
     South,
     East,
@@ -201,6 +203,33 @@ impl Display for ButtonCode {
     }
 }
 
+impl From<&str> for ButtonCode {
+    fn from(s: &str) -> Self {
+        match s {
+            "South" => ButtonCode::South,
+            "East" => ButtonCode::East,
+            "North" => ButtonCode::North,
+            "West" => ButtonCode::West,
+            "Left Shoulder" | "LeftShoulder" => ButtonCode::LeftShoulder,
+            "Right Shoulder" | "RightShoulder" => ButtonCode::RightShoulder,
+            "Left Trigger" | "LeftTrigger" => ButtonCode::LeftTrigger,
+            "Right Trigger" | "RightTrigger" => ButtonCode::RightTrigger,
+            "Select" => ButtonCode::Select,
+            "Start" => ButtonCode::Start,
+            "Left Stick" | "LeftStick" => ButtonCode::LeftStick,
+            "Right Stick" | "RightStick" => ButtonCode::RightStick,
+            "Mode" => ButtonCode::Mode,
+            "Misc" | "Misc1" => ButtonCode::Misc1,
+            "Paddle 1" | "Paddle1" => ButtonCode::Paddle1,
+            "Paddle 2" | "Paddle2" => ButtonCode::Paddle2,
+            "Paddle 3" | "Paddle3" => ButtonCode::Paddle3,
+            "Paddle 4" | "Paddle4" => ButtonCode::Paddle4,
+            "Touchpad" => ButtonCode::Touchpad,
+            _ => ButtonCode::Unknown,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AxisCode {
     LeftX,
@@ -230,10 +259,58 @@ impl Display for AxisCode {
     }
 }
 
+impl From<&str> for AxisCode {
+    fn from(s: &str) -> Self {
+        match s {
+            "LeftX" | "Left X" => AxisCode::LeftX,
+            "LeftY" | "Left Y" => AxisCode::LeftY,
+            "RightX" | "Right X" => AxisCode::RightX,
+            "RightY" | "Right Y" => AxisCode::RightY,
+            "LeftTrigger" | "Left Trigger" => AxisCode::LeftTrigger,
+            "RightTrigger" | "Right Trigger" => AxisCode::RightTrigger,
+            "DPadX" | "DPad X" => AxisCode::DPadX,
+            "DPadY" | "DPad Y" => AxisCode::DPadY,
+            _ => AxisCode::Unknown,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AxisDirection {
     Positive, // Value > 0 (Down, Right)
     Negative, // Value < 0 (Up, Left)
+}
+
+impl Display for AxisDirection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match self {
+            Self::Positive => write!(f, "Positive"),
+            Self::Negative => write!(f, "Negative"),
+        }
+    }
+}
+
+pub fn axis_and_direction_to_string(axis_code: AxisCode, direction: AxisDirection) -> String {
+    match axis_code {
+        AxisCode::DPadX => match direction {
+            AxisDirection::Negative => "DPad Left".to_string(),
+            AxisDirection::Positive => "DPad Right".to_string(),
+        },
+        AxisCode::DPadY => match direction {
+            AxisDirection::Negative => "DPad Up".to_string(),
+            AxisDirection::Positive => "DPad Down".to_string(),
+        },
+        AxisCode::LeftX | AxisCode::RightX => match direction {
+            AxisDirection::Negative => axis_code.to_string() + " Left",
+            AxisDirection::Positive => axis_code.to_string() + " Right",
+        },
+        AxisCode::LeftY | AxisCode::RightY => match direction {
+            AxisDirection::Negative => axis_code.to_string() + " Up",
+            AxisDirection::Positive => axis_code.to_string() + " Down",
+        },
+        // For other AxisCode values like triggers or unknown, use their Display implementation
+        _ => axis_code.to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -422,5 +499,82 @@ mod tests {
 
         let just_outside_max = InputEvent::axis_move(AxisCode::LeftX, 128 + 11);
         assert!(!just_outside_max.is_in_deadzone());
+    }
+
+    #[test]
+    fn test_axis_and_direction_to_string() {
+        // DPadX
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::DPadX, AxisDirection::Negative),
+            "DPad Left"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::DPadX, AxisDirection::Positive),
+            "DPad Right"
+        );
+
+        // DPadY
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::DPadY, AxisDirection::Negative),
+            "DPad Up"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::DPadY, AxisDirection::Positive),
+            "DPad Down"
+        );
+
+        // LeftX
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::LeftX, AxisDirection::Negative),
+            "Left X Left"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::LeftX, AxisDirection::Positive),
+            "Left X Right"
+        );
+
+        // RightX
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::RightX, AxisDirection::Negative),
+            "Right X Left"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::RightX, AxisDirection::Positive),
+            "Right X Right"
+        );
+
+        // LeftY
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::LeftY, AxisDirection::Negative),
+            "Left Y Up"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::LeftY, AxisDirection::Positive),
+            "Left Y Down"
+        );
+
+        // RightY
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::RightY, AxisDirection::Negative),
+            "Right Y Up"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::RightY, AxisDirection::Positive),
+            "Right Y Down"
+        );
+
+        // Other axis codes (should just return their display string)
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::LeftTrigger, AxisDirection::Negative),
+            "Left Trigger"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::RightTrigger, AxisDirection::Positive),
+            "Right Trigger"
+        );
+        assert_eq!(
+            axis_and_direction_to_string(AxisCode::Unknown, AxisDirection::Negative),
+            "Unknown"
+        );
     }
 }

@@ -2,8 +2,15 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::event::{
-    AxisCode, AxisDirection, ButtonCode, InputEvent, KeyboardCode, KeyboardEventType, OutputEvent,
+use crate::{
+    event::{
+        AxisCode, AxisDirection, ButtonCode, InputEvent, KeyboardCode, KeyboardEventType,
+        OutputEvent,
+    },
+    mapping::{
+        MappingRule::{self, AxisDirectionToKey, ButtonToKey},
+        profile::Profile,
+    },
 };
 
 pub struct MappingEngine {
@@ -13,6 +20,30 @@ pub struct MappingEngine {
 }
 
 impl MappingEngine {
+    pub fn load_from_profile(profile: &Profile) -> Result<Self> {
+        let mut button_rules = HashMap::new();
+        let mut axis_rules = HashMap::new();
+
+        for mapping in &profile.mappings {
+            match MappingRule::try_from(mapping)? {
+                ButtonToKey { source, target } => {
+                    button_rules.insert(source, target);
+                }
+                AxisDirectionToKey { source, direction, target } => {
+                    axis_rules.insert((source, direction), target);
+                }
+            }
+        }
+
+        tracing::info!(
+            "Mapping engine initialized with {} button rules, {} axis rules",
+            button_rules.len(),
+            axis_rules.len()
+        );
+
+        Ok(Self { button_rules, axis_rules, axis_states: HashMap::new() })
+    }
+
     pub fn new_hardcoded() -> Self {
         let mut button_rules = HashMap::new();
         let mut axis_rules = HashMap::new();
@@ -224,5 +255,43 @@ mod tests {
         let OutputEvent::Keyboard { code: code2, event_type: type2 } = events[1];
         assert_eq!(code2, KeyboardCode::Down);
         assert_eq!(type2, KeyboardEventType::Press);
+    }
+
+    #[test]
+    fn test_load_from_profile() {
+        let profile = Profile::default_profile();
+        let engine = MappingEngine::load_from_profile(&profile).unwrap();
+
+        assert_eq!(engine.button_rules.len(), 6);
+        assert_eq!(engine.axis_rules.len(), 4);
+
+        // Verify some specific mappings from default profile
+        assert_eq!(engine.button_rules.get(&ButtonCode::North), Some(&KeyboardCode::W));
+        assert_eq!(
+            engine.axis_rules.get(&(AxisCode::DPadY, AxisDirection::Negative)),
+            Some(&KeyboardCode::Up)
+        );
+    }
+
+    #[test]
+    fn test_load_from_invalid_profile() {
+        use crate::mapping::Mapping;
+        use crate::mapping::types::TargetType;
+
+        let profile = Profile {
+            name: "Invalid".to_string(),
+            description: "Invalid profile".to_string(),
+            game_name: None,
+            mappings: vec![Mapping {
+                source_name: "DPadX".to_string(),
+                source_direction: Some("Invalid".to_string()),
+                target_type: TargetType::Keyboard,
+                target_name: "A".to_string(),
+            }],
+            settings: Default::default(),
+        };
+
+        let result = MappingEngine::load_from_profile(&profile);
+        assert!(result.is_err());
     }
 }
